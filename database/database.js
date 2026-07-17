@@ -13,6 +13,26 @@ db.serialize(()=>{
     // Users Table
 
     db.run(`
+
+CREATE TABLE IF NOT EXISTS users (
+
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+telegram_id TEXT UNIQUE,
+
+username TEXT,
+
+first_name TEXT,
+
+status TEXT DEFAULT 'active',
+
+created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+)
+
+`);
+
+    db.run(`
     CREATE TABLE IF NOT EXISTS users(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
