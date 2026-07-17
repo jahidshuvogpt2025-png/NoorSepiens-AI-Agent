@@ -10,7 +10,7 @@ const db = new sqlite3.Database(
 db.serialize(()=>{
 
 
-    // Users
+    // Users Table
 
     db.run(`
     CREATE TABLE IF NOT EXISTS users(
@@ -50,8 +50,7 @@ db.serialize(()=>{
 
 
 
-
-    // Long Term Memory (NEW)
+    // Long + Personality Memory
 
     db.run(`
     CREATE TABLE IF NOT EXISTS long_memory(
@@ -64,6 +63,8 @@ db.serialize(()=>{
 
         memory TEXT,
 
+        importance INTEGER DEFAULT 1,
+
         time DATETIME DEFAULT CURRENT_TIMESTAMP
 
     )
@@ -75,7 +76,8 @@ db.serialize(()=>{
 
 
 
-console.log("Database Updated ✅");
+console.log("Database Personality Upgrade Ready ✅");
+
 
 
 module.exports = db;
