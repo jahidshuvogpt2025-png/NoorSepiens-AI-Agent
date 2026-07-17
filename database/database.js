@@ -10,6 +10,8 @@ const db = new sqlite3.Database(
 db.serialize(()=>{
 
 
+    // Users
+
     db.run(`
     CREATE TABLE IF NOT EXISTS users(
 
@@ -27,6 +29,8 @@ db.serialize(()=>{
     `);
 
 
+
+    // Short Memory
 
     db.run(`
     CREATE TABLE IF NOT EXISTS memory(
@@ -46,12 +50,17 @@ db.serialize(()=>{
 
 
 
+
+    // Long Term Memory (NEW)
+
     db.run(`
     CREATE TABLE IF NOT EXISTS long_memory(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
         user_id TEXT,
+
+        category TEXT,
 
         memory TEXT,
 
@@ -61,7 +70,12 @@ db.serialize(()=>{
     `);
 
 
+
 });
+
+
+
+console.log("Database Updated ✅");
 
 
 module.exports = db;
