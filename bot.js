@@ -326,6 +326,8 @@ ${JSON.stringify(data,null,2)}
 
 // Long Memory Command
 
+// Long Memory Command
+
 bot.onText(/\/longmemory/, async(msg)=>{
 
     const chatId = msg.chat.id;
@@ -345,19 +347,49 @@ bot.onText(/\/longmemory/, async(msg)=>{
         }
 
 
-        let text = "🧠 Long Memory:\n\n";
+        let output = "🧠 NoorSepiens Memory\n\n";
+
+
+        const categories = {
+
+            style: "🎯 Style",
+
+            skill: "📚 Skill",
+
+            project: "🚀 Project",
+
+            preference: "⚙️ Preference",
+
+            instruction: "📌 Instruction",
+
+            identity: "👤 Identity"
+
+        };
 
 
         data.forEach(item=>{
 
-            text += `• ${item.memory}\n`;
+
+            const title = 
+            categories[item.category] || 
+            "🧠 Other";
+
+
+            output += `${title}\n`;
+
+            output += `• ${item.memory}\n\n`;
+
 
         });
 
 
+
         bot.sendMessage(
+
             chatId,
-            text
+
+            output
+
         );
 
 
