@@ -2,36 +2,66 @@ function extract(text){
 
     const lower = text.toLowerCase();
 
-    let result = null;
 
-
-    // Name preference
+    // Style / Calling preference
 
     if(
-        lower.includes("আমাকে") &&
-        lower.includes("ডাকবে")
+        (lower.includes("আমাকে") &&
+        lower.includes("ডাকবে")) ||
+        lower.includes("গুরু বলে ডাকবে")
     ){
 
-        result = {
+        return {
+
             category:"style",
             memory:text,
             importance:5
+
         };
 
     }
 
 
 
-    // Remember instruction
+    // Skill / Learning
 
-    else if(
-        lower.includes("মনে রাখবে") ||
-        lower.includes("ভুলবে না")
+    if(
+
+        lower.includes("শিখছি") ||
+        lower.includes("শিখতেছি") ||
+        lower.includes("learn") ||
+        lower.includes("python") ||
+        lower.includes("coding") ||
+        lower.includes("programming") ||
+        lower.includes("ai")
+
     ){
 
-        result = {
+        return {
 
-            category:"instruction",
+            category:"skill",
+            memory:text,
+            importance:4
+
+        };
+
+    }
+
+
+
+    // Project
+
+    if(
+
+        lower.includes("প্রজেক্ট") ||
+        lower.includes("project") ||
+        lower.includes("noorsepiens")
+
+    ){
+
+        return {
+
+            category:"project",
             memory:text,
             importance:5
 
@@ -43,12 +73,15 @@ function extract(text){
 
     // Preference
 
-    else if(
+    if(
+
         lower.includes("আমি চাই") ||
-        lower.includes("আমার পছন্দ")
+        lower.includes("আমার পছন্দ") ||
+        lower.includes("ভালো লাগে")
+
     ){
 
-        result={
+        return {
 
             category:"preference",
             memory:text,
@@ -60,7 +93,28 @@ function extract(text){
 
 
 
-    return result;
+    // Instruction (শেষে রাখবো)
+
+    if(
+
+        lower.includes("মনে রাখবে") ||
+        lower.includes("ভুলবে না")
+
+    ){
+
+        return {
+
+            category:"instruction",
+            memory:text,
+            importance:5
+
+        };
+
+    }
+
+
+
+    return null;
 
 }
 
