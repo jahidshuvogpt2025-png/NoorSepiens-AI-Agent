@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const users = require("./modules/users");
 const personality = require("./core/personality");
 
 const TelegramBot = require("node-telegram-bot-api");
@@ -184,7 +185,8 @@ bot.onText(
 
 
 const id = msg.chat.id;
-
+users.saveUser(msg.from);
+    
 
 
 bot.sendMessage(
