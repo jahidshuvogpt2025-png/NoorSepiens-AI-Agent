@@ -386,42 +386,57 @@ return;
 
 
 
-// Name detection
+// Smart Name + Personal Memory
 
 
-if(
-text.startsWith("আমার নাম")
-){
+if(text.startsWith("আমার নাম")){
 
 
-const name =
-text.replace(
-"আমার নাম",
-""
-)
+const name = text
+.replace("আমার নাম","")
+.trim()
+.split("\n")[0]
 .trim();
 
 
 
+if(name){
+
+
 profile.saveProfile(
-
 id,
-
 name
-
 );
 
 
 
 memory.add(
-
 id,
-
 "user",
-
-text
-
+`আমার নাম ${name}`
 );
+
+
+
+const extraInfo = text
+.split("\n")
+.slice(1)
+.join("\n")
+.trim();
+
+
+
+if(extraInfo){
+
+
+memory.add(
+id,
+"user",
+extraInfo
+);
+
+
+}
 
 
 
@@ -429,9 +444,15 @@ bot.sendMessage(
 
 id,
 
-`ঠিক আছে ✅ আমি মনে রাখলাম। আপনার নাম ${name}`
+`ঠিক আছে ✅  
+আমি মনে রাখলাম।
+
+আপনার নাম: ${name}
+
+${extraInfo ? "অতিরিক্ত তথ্যও মনে রাখলাম 🧠" : ""}`
 
 );
+
 
 
 return;
@@ -439,6 +460,8 @@ return;
 
 }
 
+
+}
 
 
 
