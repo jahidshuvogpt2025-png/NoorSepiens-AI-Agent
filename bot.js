@@ -268,7 +268,49 @@ ${JSON.stringify(data,null,2)}
 
 
 
+// Long Memory Command
 
+bot.onText(/\/longmemory/, async(msg)=>{
+
+    const chatId = msg.chat.id;
+
+
+    longMemory.get(chatId, (data)=>{
+
+
+        if(!data || data.length === 0){
+
+            bot.sendMessage(
+                chatId,
+                "🧠 Long Memory খালি আছে।"
+            );
+
+            return;
+        }
+
+
+        let text = "🧠 Long Memory:\n\n";
+
+
+        data.forEach(item=>{
+
+            text += `• ${item.memory}\n`;
+
+        });
+
+
+        bot.sendMessage(
+            chatId,
+            text
+        );
+
+
+    });
+
+
+});
+
+                   
 
 
 
