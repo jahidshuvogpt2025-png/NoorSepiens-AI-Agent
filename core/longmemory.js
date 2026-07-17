@@ -97,7 +97,90 @@ function get(
         }
 
 
-        callback(rows || []);
+
+        rows = rows || [];
+
+
+
+        // Auto Repair Old Memory
+
+        rows.forEach(item=>{
+
+
+            const text = item.memory.toLowerCase();
+
+
+
+            // Python / Coding = Skill
+
+            if(
+
+                item.category === "instruction" &&
+
+                (
+                    text.includes("python") ||
+                    text.includes("coding") ||
+                    text.includes("programming") ||
+                    text.includes("ai") ||
+                    text.includes("শিখ")
+                )
+
+            ){
+
+                item.category = "skill";
+
+                item.importance = 4;
+
+
+            }
+
+
+
+
+            // Calling preference = Style
+
+            if(
+
+                text.includes("গুরু বলে ডাকবে") ||
+                text.includes("আমাকে গুরু")
+
+            ){
+
+                item.category = "style";
+
+                item.importance = 5;
+
+
+            }
+
+
+
+
+            // Project
+
+            if(
+
+                text.includes("noorsepiens") ||
+                text.includes("project") ||
+                text.includes("প্রজেক্ট")
+
+            ){
+
+                item.category = "project";
+
+                item.importance = 5;
+
+
+            }
+
+
+
+        });
+
+
+
+
+        callback(rows);
 
 
     }
@@ -134,10 +217,13 @@ function clear(userId){
 
 
 
-module.exports={
+
+module.exports = {
 
     add,
+
     get,
+
     clear
 
 };
