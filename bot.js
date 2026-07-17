@@ -346,6 +346,14 @@ bot.onText(/\/longmemory/, async(msg)=>{
             return;
         }
 
+        // Sort Memory by Importance
+
+data.sort((a,b)=>{
+
+    return (b.importance || 0) - (a.importance || 0);
+
+});
+
 
         let output = "🧠 NoorSepiens Memory\n\n";
 
@@ -375,9 +383,19 @@ bot.onText(/\/longmemory/, async(msg)=>{
             "🧠 Other";
 
 
-            output += `${title}\n`;
+            output += `${title}`;
 
-            output += `• ${item.memory}\n\n`;
+if(item.importance >= 5){
+
+    output += " ⭐";
+
+}
+
+output += `\n`;
+
+output += `• ${item.memory}`;
+
+output += `\nPriority: ${item.importance || 1}\n\n`;
 
 
         });
