@@ -661,7 +661,38 @@ resolve(data);
 
 });
 
+// Personality Context
 
+const personalityData = await new Promise((resolve)=>{
+
+    longMemory.get(id,(data)=>{
+
+        resolve(data || []);
+
+    });
+
+});
+
+
+let personalityContext = "";
+
+
+if(personalityData.length > 0){
+
+    personalityContext = `
+
+User Personality:
+
+${personalityData.map(item => `
+Category: ${item.category}
+Memory: ${item.memory}
+`).join("\n")}
+
+`;
+
+}
+
+    
 
 
 
@@ -692,6 +723,8 @@ ${JSON.stringify(userContext.memory)}
 
 Long Term Memory:
 ${JSON.stringify(userContext.longMemory)}
+
+${personalityContext}
 
 
 নিয়ম:
