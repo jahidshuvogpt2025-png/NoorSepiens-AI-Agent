@@ -3,7 +3,7 @@ const db = require("../database/database");
 
 // Save long memory
 
-function add(userId, category, text){
+function add(userId, category, text, impotance){
 
 
     db.run(
