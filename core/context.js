@@ -1,61 +1,97 @@
 const db = require("../database/database");
 
+const longMemory = require("./longmemory");
 
 
-function getContext(userId,callback){
+
+function getContext(userId, callback){
 
 
-db.get(
+    // Get User Profile
 
-`
-SELECT *
+    db.get(
 
-FROM users
+    `
+    SELECT *
 
-WHERE user_id=?
+    FROM users
 
-`,
+    WHERE user_id=?
 
-[userId],
+    `,
 
-
-(err,user)=>{
-
-
-db.all(
-
-`
-SELECT role,content
-
-FROM memory
-
-WHERE user_id=?
-
-ORDER BY id DESC
-
-LIMIT 10
-
-`,
-
-[userId],
+    [
+        userId
+    ],
 
 
-(err,memory)=>{
+    (err,user)=>{
 
 
-callback({
 
-user:user || {},
+        // Get Short Memory
 
-memory:memory || []
+        db.all(
 
-});
+        `
+        SELECT role,content
+
+        FROM memory
+
+        WHERE user_id=?
+
+        ORDER BY id DESC
+
+        LIMIT 10
+
+        `,
+
+        [
+            userId
+        ],
 
 
-});
+        (err,memory)=>{
 
 
-});
+
+            // Get Long Memory
+
+            longMemory.get(
+
+            userId,
+
+            (longMemoryData)=>{
+
+
+                callback({
+
+
+                    user:user || {},
+
+
+                    memory:
+                    (memory || []).reverse(),
+
+
+                    longMemory:
+                    longMemoryData || []
+
+
+                });
+
+
+
+            });
+
+
+
+        });
+
+
+
+    });
+
 
 
 }
@@ -63,5 +99,7 @@ memory:memory || []
 
 
 module.exports={
+
 getContext
+
 };
