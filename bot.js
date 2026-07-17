@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+const personality = require("./core/personality");
+
 const TelegramBot = require("node-telegram-bot-api");
 const express = require("express");
 
@@ -16,6 +18,23 @@ const TOKEN = process.env.BOT_TOKEN;
 
 function autoLearn(userId,text){
 
+    const personalityData = personality.extract(text);
+
+
+if(personalityData){
+
+
+    longMemory.add(
+        userId,
+        personalityData.category,
+        personalityData.memory,
+        personalityData.importance
+    );
+
+
+    return;
+
+}
 
     const lower = text.toLowerCase();
 
