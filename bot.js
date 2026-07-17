@@ -14,23 +14,57 @@ const admin = require("./modules/admin");
 
 const TOKEN = process.env.BOT_TOKEN;
 
-function autoLearn(userId, text){
+function autoLearn(userId,text){
+
 
     const lower = text.toLowerCase();
 
 
+
+    let category = null;
+    let importance = 2;
+
+
+
     if(
         lower.includes("শিখ") ||
-        lower.includes("learn")
+        lower.includes("learn") ||
+        lower.includes("coding") ||
+        lower.includes("python") ||
+        lower.includes("ai")
     ){
 
-        longMemory.add(
-            userId,
-            "skill",
-            text
-        );
+        category = "skill";
+        importance = 3;
 
     }
+
+
+
+    if(
+        lower.includes("পছন্দ") ||
+        lower.includes("ভালো লাগে") ||
+        lower.includes("চাই")
+    ){
+
+        category = "preference";
+        importance = 5;
+
+    }
+
+
+
+    if(
+        lower.includes("গুরু") ||
+        lower.includes("ডাকবে") ||
+        lower.includes("বলবে")
+    ){
+
+        category = "style";
+        importance = 5;
+
+    }
+
 
 
     if(
@@ -38,28 +72,31 @@ function autoLearn(userId, text){
         lower.includes("project")
     ){
 
-        longMemory.add(
-            userId,
-            "project",
-            text
-        );
+        category = "project";
+        importance = 4;
 
     }
 
 
-    if(
-        lower.includes("বাংলাদেশ") ||
-        lower.includes("আমি থাকি") ||
-        lower.includes("আমার পছন্দ")
-    ){
+
+    if(category){
+
 
         longMemory.add(
+
             userId,
-            "personal",
-            text
+
+            category,
+
+            text,
+
+            importance
+
         );
 
+
     }
+
 
 }
 
