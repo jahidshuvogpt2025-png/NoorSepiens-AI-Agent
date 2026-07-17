@@ -7,7 +7,10 @@ const express = require("express");
 
 const ai = require("./core/ai");
 const memory = require("./core/memory");
+
 const longMemory = require("./core/longmemory");
+const memorySearch = require("./core/memorySearch");
+
 const context = require("./core/context");
 
 const profile = require("./modules/profile");
@@ -322,9 +325,6 @@ ${JSON.stringify(data,null,2)}
 
 );
 
-
-
-// Long Memory Command
 
 // Long Memory Command
 
@@ -745,7 +745,25 @@ Memory: ${item.memory}
     
 
 
+const relevantMemory = await new Promise((resolve)=>{
 
+
+    memorySearch.search(
+
+        id,
+
+        text,
+
+        (data)=>{
+
+            resolve(data);
+
+        }
+
+    );
+
+
+});
 
 
 const messages = [
@@ -771,8 +789,8 @@ Recent Conversation:
 ${JSON.stringify(userContext.memory)}
 
 
-Long Term Memory:
-${JSON.stringify(userContext.longMemory)}
+Relevant Memory:
+${JSON.stringify(relevantMemory)}
 
 ${personalityContext}
 
