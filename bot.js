@@ -14,16 +14,14 @@ const admin = require("./modules/admin");
 
 const TOKEN = process.env.BOT_TOKEN;
 
-function autoLearn(userId,text){
-
+function autoLearn(userId, text){
 
     const lower = text.toLowerCase();
 
 
-
     if(
-        lower.includes("আমি শিখছি") ||
-        lower.includes("আমি শিখতেছি")
+        lower.includes("শিখ") ||
+        lower.includes("learn")
     ){
 
         longMemory.add(
@@ -35,10 +33,9 @@ function autoLearn(userId,text){
     }
 
 
-
     if(
-        lower.includes("আমার প্রজেক্ট") ||
-        lower.includes("আমার প্রকল্প")
+        lower.includes("প্রজেক্ট") ||
+        lower.includes("project")
     ){
 
         longMemory.add(
@@ -50,10 +47,10 @@ function autoLearn(userId,text){
     }
 
 
-
     if(
+        lower.includes("বাংলাদেশ") ||
         lower.includes("আমি থাকি") ||
-        lower.includes("আমি বাংলাদেশে")
+        lower.includes("আমার পছন্দ")
     ){
 
         longMemory.add(
@@ -64,9 +61,7 @@ function autoLearn(userId,text){
 
     }
 
-
 }
-
 
 if(!TOKEN){
 
