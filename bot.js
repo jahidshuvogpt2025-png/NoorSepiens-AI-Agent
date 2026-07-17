@@ -5,6 +5,7 @@ const express = require("express");
 
 const ai = require("./core/ai");
 const memory = require("./core/memory");
+const longMemory = require("./core/longmemory");
 const context = require("./core/context");
 
 const profile = require("./modules/profile");
@@ -12,6 +13,59 @@ const admin = require("./modules/admin");
 
 
 const TOKEN = process.env.BOT_TOKEN;
+
+function autoLearn(userId,text){
+
+
+    const lower = text.toLowerCase();
+
+
+
+    if(
+        lower.includes("আমি শিখছি") ||
+        lower.includes("আমি শিখতেছি")
+    ){
+
+        longMemory.add(
+            userId,
+            "skill",
+            text
+        );
+
+    }
+
+
+
+    if(
+        lower.includes("আমার প্রজেক্ট") ||
+        lower.includes("আমার প্রকল্প")
+    ){
+
+        longMemory.add(
+            userId,
+            "project",
+            text
+        );
+
+    }
+
+
+
+    if(
+        lower.includes("আমি থাকি") ||
+        lower.includes("আমি বাংলাদেশে")
+    ){
+
+        longMemory.add(
+            userId,
+            "personal",
+            text
+        );
+
+    }
+
+
+}
 
 
 if(!TOKEN){
@@ -481,7 +535,12 @@ text
 
 );
 
+autoLearn(
+id,
+text
+);
 
+    
 
 
 
