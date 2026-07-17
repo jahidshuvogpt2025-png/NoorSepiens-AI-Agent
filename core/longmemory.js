@@ -1,9 +1,14 @@
 const db = require("../database/database");
 
 
-// Save long memory
+// Add Long Memory
 
-function add(userId, category, text, impotance){
+function add(
+    userId,
+    category,
+    text,
+    importance = 2
+){
 
 
     db.run(
@@ -13,18 +18,33 @@ function add(userId, category, text, impotance){
     (
         user_id,
         category,
-        memory
+        memory,
+        importance
     )
 
-    VALUES(?,?,?)
+    VALUES(?,?,?,?)
 
     `,
 
     [
         userId,
         category,
-        text
-    ]
+        text,
+        importance
+    ],
+
+    (err)=>{
+
+        if(err){
+
+            console.log(
+                "Long Memory Save Error:",
+                err.message
+            );
+
+        }
+
+    }
 
     );
 
@@ -33,21 +53,27 @@ function add(userId, category, text, impotance){
 
 
 
-// Get long memory
+// Get Long Memory
 
-function get(userId, callback){
+function get(
+    userId,
+    callback
+){
 
 
     db.all(
 
     `
-    SELECT category,memory
+    SELECT
+    category,
+    memory,
+    importance
 
     FROM long_memory
 
     WHERE user_id=?
 
-    ORDER BY id DESC
+    ORDER BY importance DESC, id DESC
 
     LIMIT 50
 
@@ -61,6 +87,8 @@ function get(userId, callback){
 
 
         if(err){
+
+            console.log(err);
 
             callback([]);
 
@@ -81,8 +109,7 @@ function get(userId, callback){
 
 
 
-
-// Clear long memory
+// Clear Long Memory
 
 function clear(userId){
 
@@ -109,8 +136,8 @@ function clear(userId){
 
 module.exports={
 
-add,
-get,
-clear
+    add,
+    get,
+    clear
 
 };
