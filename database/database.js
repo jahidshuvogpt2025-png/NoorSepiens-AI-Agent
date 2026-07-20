@@ -6,98 +6,84 @@ const db = new sqlite3.Database(
 );
 
 
-
 db.serialize(()=>{
 
 
-    // Users Table
+// Users Table
 
-    db.run(`
-
+db.run(`
 CREATE TABLE IF NOT EXISTS users (
 
 id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-telegram_id TEXT UNIQUE,
+user_id TEXT UNIQUE,
+
+telegram_id TEXT,
 
 username TEXT,
 
 first_name TEXT,
 
+name TEXT,
+
 status TEXT DEFAULT 'active',
+
+join_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 
 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 
 )
-
 `);
 
-    db.run(`
-    CREATE TABLE IF NOT EXISTS users(
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        user_id TEXT UNIQUE,
-
-        username TEXT,
-
-        name TEXT,
-
-        join_date DATETIME DEFAULT CURRENT_TIMESTAMP
-
-    )
-    `);
 
 
+// Short Memory
 
-    // Short Memory
+db.run(`
+CREATE TABLE IF NOT EXISTS memory(
 
-    db.run(`
-    CREATE TABLE IF NOT EXISTS memory(
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+user_id TEXT,
 
-        user_id TEXT,
+role TEXT,
 
-        role TEXT,
+content TEXT,
 
-        content TEXT,
+time DATETIME DEFAULT CURRENT_TIMESTAMP
 
-        time DATETIME DEFAULT CURRENT_TIMESTAMP
-
-    )
-    `);
+)
+`);
 
 
 
-    // Long + Personality Memory
 
-    db.run(`
-    CREATE TABLE IF NOT EXISTS long_memory(
+// Long Memory
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+db.run(`
+CREATE TABLE IF NOT EXISTS long_memory(
 
-        user_id TEXT,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        category TEXT,
+user_id TEXT,
 
-        memory TEXT,
+category TEXT,
 
-        importance INTEGER DEFAULT 1,
+memory TEXT,
 
-        time DATETIME DEFAULT CURRENT_TIMESTAMP
+importance INTEGER DEFAULT 1,
 
-    )
-    `);
+time DATETIME DEFAULT CURRENT_TIMESTAMP
+
+)
+`);
 
 
 
 });
 
 
-
 console.log("Database Personality Upgrade Ready ✅");
-
 
 
 module.exports = db;
