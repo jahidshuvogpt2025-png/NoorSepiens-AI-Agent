@@ -1,24 +1,33 @@
 require("dotenv").config();
 
 const TelegramBot = require("node-telegram-bot-api");
+
 const askAI = require("./ai");
 const memory = require("./memory");
-
-const bot = new TelegramBot(process.env.BOT_TOKEN, {
-    polling: true
-});
+const longMemory = require("./longmemory");
 
 
-console.log("NoorSepiens AI Bot Started ✅");
+const bot = new TelegramBot(
+    process.env.BOT_TOKEN,
+    {
+        polling: true
+    }
+);
 
 
-bot.onText(/\/start/, (msg) => {
+console.log("NoorSepiens AI Started ✅");
+
+
+
+// START COMMAND
+
+bot.onText(/\/start/, (msg)=>{
 
     const chatId = msg.chat.id;
 
     bot.sendMessage(
         chatId,
-        `🤖 Welcome to NoorSepiens AI
+`🤖 Welcome to NoorSepiens AI
 
 আমি তোমার Personal AI Assistant.
 
@@ -28,51 +37,149 @@ bot.onText(/\/start/, (msg) => {
 });
 
 
-bot.onText(/\/memory/, (msg) => {
+
+
+// MEMORY COMMAND
+
+bot.onText(/\/memory/, (msg)=>{
 
     const chatId = msg.chat.id;
 
-    memory.getMemory(chatId, (data)=>{
+
+    memory.getMemory(chatId,(data)=>{
+
 
         if(data.length === 0){
-            bot.sendMessage(chatId,"Memory empty 🧠");
+
+            bot.sendMessage(
+                chatId,
+                "Memory empty 🧠"
+            );
+
             return;
         }
 
-        let text = "🧠 Your Memory:\n\n";
+
+
+        let text="🧠 Your Memory:\n\n";
+
 
         data.forEach(item=>{
+
             text += `${item.role}: ${item.message}\n\n`;
+
         });
 
-        bot.sendMessage(chatId,text);
+
+
+        bot.sendMessage(
+            chatId,
+            text
+        );
+
 
     });
 
 });
 
 
-bot.onText(/\/clear/, (msg)=>{
+
+
+
+// LONG MEMORY COMMAND
+
+bot.onText(/\/longmemory/, (msg)=>{
+
 
     const chatId = msg.chat.id;
 
-    memory.clearMemory(chatId);
 
-    bot.sendMessage(chatId,"Memory cleared ✅");
+    longMemory.getLongMemory(chatId,(data)=>{
+
+
+        if(data.length === 0){
+
+            bot.sendMessage(
+                chatId,
+                "Long Memory empty 🧠"
+            );
+
+            return;
+        }
+
+
+
+        let text="🧠 Long Memory:\n\n";
+
+
+        data.forEach(item=>{
+
+            text += `${item.key}: ${item.value}\n`;
+
+        });
+
+
+
+        bot.sendMessage(
+            chatId,
+            text
+        );
+
+
+    });
+
 
 });
 
 
-bot.on("message", async (msg)=>{
 
-    if(!msg.text) return;
 
-    if(msg.text.startsWith("/")) return;
+
+
+// CLEAR MEMORY
+
+bot.onText(/\/clear/, (msg)=>{
 
 
     const chatId = msg.chat.id;
+
+
+    memory.clearMemory(chatId);
+
+
+    bot.sendMessage(
+        chatId,
+        "Memory cleared ✅"
+    );
+
+
+});
+
+
+
+
+
+
+// USER MESSAGE
+
+bot.on("message", async(msg)=>{
+
+
+    if(!msg.text) return;
+
+
+    if(msg.text.startsWith("/"))
+        return;
+
+
+
+    const chatId = msg.chat.id;
+
     const userText = msg.text;
 
+
+
+    // Save short memory
 
     memory.saveMemory(
         chatId,
@@ -81,38 +188,79 @@ bot.on("message", async (msg)=>{
     );
 
 
-    memory.getMemory(chatId, async(history)=>{
 
 
-        const messages = [
-            {
-                role:"system",
-                content:
-                "You are NoorSepiens AI. Reply naturally and intelligently."
-            },
-            ...history.map(h=>({
-                role:h.role,
-                content:h.message
-            }))
-        ];
+    // Save name to long memory
+
+    const nameMatch = userText.match(/আমার নাম (.+)/);
 
 
-        const reply = await askAI(messages);
+    if(nameMatch){
 
 
-        memory.saveMemory(
+        longMemory.saveLongMemory(
             chatId,
-            "assistant",
-            reply
+            "name",
+            nameMatch[1]
         );
 
 
-        bot.sendMessage(
-            chatId,
-            reply
-        );
+    }
 
 
-    });
+
+
+
+
+    memory.getMemory(
+        chatId,
+        async(history)=>{
+
+
+            const messages=[
+
+                {
+                    role:"system",
+                    content:
+                    "You are NoorSepiens AI. Reply naturally in Bangla. Be helpful."
+                },
+
+
+                ...history.map(h=>({
+
+                    role:h.role,
+                    content:h.message
+
+                }))
+
+            ];
+
+
+
+
+
+            const reply = await askAI(messages);
+
+
+
+
+            memory.saveMemory(
+                chatId,
+                "assistant",
+                reply
+            );
+
+
+
+            bot.sendMessage(
+                chatId,
+                reply
+            );
+
+
+
+        }
+    );
+
 
 });
