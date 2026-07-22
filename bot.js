@@ -1,6 +1,8 @@
 require("dotenv").config();
+users.createUsersTable();
 
 const TelegramBot = require("node-telegram-bot-api");
+const users = require("./users");
 
 const askAI = require("./ai");
 const memory = require("./memory");
@@ -22,17 +24,61 @@ console.log("NoorSepiens AI Started ✅");
 // START COMMAND
 
 bot.onText(/\/start/, (msg)=>{
+bot.onText(/\/start/, (msg)=>{
 
     const chatId = msg.chat.id;
+
+    users.registerUser(msg.from);
+
 
     bot.sendMessage(
         chatId,
 `🤖 Welcome to NoorSepiens AI
 
-আমি তোমার Personal AI Assistant.
+আপনার User Profile তৈরি হয়েছে ✅
 
-প্রশ্ন করো, আমি উত্তর দেবো।`
+আমি আপনার Personal AI Assistant.
+
+প্রশ্ন করুন, আমি উত্তর দেবো।`
     );
+
+});
+
+    bot.onText(/\/profile/, (msg)=>{
+
+    const chatId = msg.chat.id;
+
+
+    users.getUser(chatId,(user)=>{
+
+
+        if(!user){
+
+            bot.sendMessage(
+                chatId,
+                "User profile পাওয়া যায়নি ❌"
+            );
+
+            return;
+        }
+
+
+        bot.sendMessage(
+            chatId,
+`👤 User Profile
+
+Name: ${user.first_name}
+
+Username: @${user.username || "none"}
+
+ID: ${user.telegram_id}
+
+Join Date: ${user.created_at}`
+        );
+
+
+    });
+
 
 });
 
