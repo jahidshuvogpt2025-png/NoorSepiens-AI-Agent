@@ -6,9 +6,10 @@ const users = require("./users");
 const askAI = require("./ai");
 const memory = require("./memory");
 const longMemory = require("./longmemory");
+const personality = require("./personality");
 
 
-// Create tables
+// Create database tables
 
 users.createUsersTable();
 longMemory.createLongMemoryTable();
@@ -28,25 +29,29 @@ console.log("NoorSepiens AI Started ✅");
 
 
 
-// START
+// START COMMAND
 
 bot.onText(/\/start/, (msg)=>{
 
     const chatId = msg.chat.id;
 
+
     users.registerUser(msg.from);
+
 
 
     bot.sendMessage(
         chatId,
-`🤖 Welcome to NoorSepiens AI
+`🤖 NoorSepiens AI
 
-আপনার Personal AI Assistant প্রস্তুত ✅
+আপনার Personal AI Assistant চালু হয়েছে ✅
 
-আমি আপনার কথাগুলো মনে রাখতে পারবো।`
+আমি আপনার কথা মনে রাখতে পারবো।
+প্রশ্ন করুন।`
     );
 
 });
+
 
 
 
@@ -57,7 +62,9 @@ bot.onText(/\/start/, (msg)=>{
 
 bot.onText(/\/profile/, (msg)=>{
 
+
     const chatId = msg.chat.id;
+
 
 
     users.getUser(
@@ -73,6 +80,7 @@ bot.onText(/\/profile/, (msg)=>{
                 );
 
                 return;
+
             }
 
 
@@ -80,22 +88,25 @@ bot.onText(/\/profile/, (msg)=>{
             bot.sendMessage(
                 chatId,
 `
-👤 NoorSepiens Profile
+👤 User Profile
 
-Name: ${user.first_name}
+Name:
+${user.first_name}
 
-Username: @${user.username || "none"}
+Username:
+@${user.username || "none"}
 
-Telegram ID: ${user.telegram_id}
+ID:
+${user.telegram_id}
 
-Joined: ${user.created_at}
+Join:
+${user.created_at}
 `
             );
 
 
         }
     );
-
 
 });
 
@@ -105,12 +116,15 @@ Joined: ${user.created_at}
 
 
 
-// MEMORY
+
+
+// SHORT MEMORY
 
 bot.onText(/\/memory/, (msg)=>{
 
 
     const chatId = msg.chat.id;
+
 
 
     memory.getMemory(
@@ -129,15 +143,18 @@ bot.onText(/\/memory/, (msg)=>{
             }
 
 
+
             let text="🧠 Short Memory\n\n";
+
 
 
             data.forEach(item=>{
 
-                text += 
-                `${item.role}: ${item.message}\n\n`;
+                text +=
+`${item.role}: ${item.message}\n\n`;
 
             });
+
 
 
             bot.sendMessage(
@@ -146,11 +163,13 @@ bot.onText(/\/memory/, (msg)=>{
             );
 
 
+
         }
     );
 
-
 });
+
+
 
 
 
@@ -166,6 +185,7 @@ bot.onText(/\/longmemory/, (msg)=>{
     const chatId = msg.chat.id;
 
 
+
     longMemory.getLongMemory(
         chatId,
         (data)=>{
@@ -179,19 +199,24 @@ bot.onText(/\/longmemory/, (msg)=>{
                 );
 
                 return;
+
             }
 
 
 
-            let text="🧠 Long Term Memory\n\n";
+            let text =
+"🧠 Long Term Memory\n\n";
+
 
 
             data.forEach(item=>{
 
+
                 text +=
-                `${item.key}: ${item.value}\n`;
+`${item.key}: ${item.value}\n`;
 
             });
+
 
 
             bot.sendMessage(
@@ -200,11 +225,13 @@ bot.onText(/\/longmemory/, (msg)=>{
             );
 
 
+
         }
     );
 
-
 });
+
+
 
 
 
@@ -220,14 +247,15 @@ bot.onText(/\/clear/, (msg)=>{
     const chatId = msg.chat.id;
 
 
+
     memory.clearMemory(chatId);
+
 
 
     bot.sendMessage(
         chatId,
         "Short Memory cleared ✅"
     );
-
 
 });
 
@@ -239,9 +267,11 @@ bot.onText(/\/clear/, (msg)=>{
 
 
 
-// CHAT SYSTEM
+// MAIN CHAT
 
-bot.on("message", async(msg)=>{
+bot.on(
+"message",
+async(msg)=>{
 
 
     if(!msg.text)
@@ -259,7 +289,7 @@ bot.on("message", async(msg)=>{
 
 
 
-    // Register user
+    // Register
 
     users.registerUser(msg.from);
 
@@ -280,7 +310,7 @@ bot.on("message", async(msg)=>{
 
 
 
-    // Auto detect name
+    // Name Detection
 
 
     const nameMatch =
@@ -306,7 +336,24 @@ bot.on("message", async(msg)=>{
 
 
 
-    // Get all context
+    // Personality
+
+    const personalityData =
+    personality.analyzePersonality(
+        userText
+    );
+
+
+    const personalityPrompt =
+    personality.getPersonalityPrompt(
+        personalityData
+    );
+
+
+
+
+
+
 
 
     users.getUser(
@@ -314,9 +361,13 @@ bot.on("message", async(msg)=>{
         (user)=>{
 
 
+
         longMemory.getLongMemory(
             chatId,
             (longData)=>{
+
+
+
 
 
             memory.getMemory(
@@ -325,13 +376,15 @@ bot.on("message", async(msg)=>{
 
 
 
-                let profileContext="";
+
+
+                let profile="";
 
 
 
                 if(user){
 
-                    profileContext =
+                    profile =
 `
 User Profile:
 
@@ -357,11 +410,9 @@ ${user.username || "none"}
 
 
                     longContext +=
-                    `${item.key}: ${item.value}\n`;
-
+`${item.key}: ${item.value}\n`;
 
                 });
-
 
 
 
@@ -372,22 +423,24 @@ ${user.username || "none"}
                 const messages=[
 
 
-                {
 
-                role:"system",
+{
 
-                content:
+role:"system",
+
+content:
 
 `
 You are NoorSepiens AI.
 
-You are a personal AI assistant.
+You are a personal intelligent assistant.
 
-Reply naturally in Bangla.
+Reply in Bangla.
 
-Remember the user information.
+${personalityPrompt}
 
-${profileContext}
+
+${profile}
 
 
 Long Term Memory:
@@ -395,57 +448,68 @@ Long Term Memory:
 ${longContext}
 
 
-Use memory when answering.
+Use memory naturally.
 
-Be friendly and intelligent.
+Be helpful, friendly and smart.
 `
 
-                },
+},
 
 
 
 
+...history.map(h=>({
 
-                ...history.map(h=>({
+role:h.role,
 
-                    role:h.role,
-                    content:h.message
+content:h.message
 
-                }))
-
-
-
-                ];
+}))
 
 
 
-
-
-
-                const reply = await askAI(messages);
+];
 
 
 
 
 
 
-                // Save AI reply
+
+
+                const reply =
+                await askAI(messages);
+
+
+
+
+
 
 
                 memory.saveMemory(
+
                     chatId,
+
                     "assistant",
+
                     reply
+
                 );
+
+
 
 
 
 
 
                 bot.sendMessage(
+
                     chatId,
+
                     reply
+
                 );
+
 
 
 
@@ -467,6 +531,7 @@ Be friendly and intelligent.
         }
 
     );
+
 
 
 });
