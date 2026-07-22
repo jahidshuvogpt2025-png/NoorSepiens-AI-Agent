@@ -8,18 +8,23 @@ const memory = require("./memory");
 const longMemory = require("./longmemory");
 
 
+// Create tables
+
 users.createUsersTable();
+longMemory.createLongMemoryTable();
+
 
 
 const bot = new TelegramBot(
     process.env.BOT_TOKEN,
     {
-        polling: true
+        polling:true
     }
 );
 
 
 console.log("NoorSepiens AI Started ✅");
+
 
 
 
@@ -36,14 +41,14 @@ bot.onText(/\/start/, (msg)=>{
         chatId,
 `🤖 Welcome to NoorSepiens AI
 
-আপনার User Profile তৈরি হয়েছে ✅
+আপনার Personal AI Assistant প্রস্তুত ✅
 
-আমি আপনার Personal AI Assistant.
-
-প্রশ্ন করুন, আমি উত্তর দেবো।`
+আমি আপনার কথাগুলো মনে রাখতে পারবো।`
     );
 
 });
+
+
 
 
 
@@ -55,37 +60,47 @@ bot.onText(/\/profile/, (msg)=>{
     const chatId = msg.chat.id;
 
 
-    users.getUser(chatId,(user)=>{
+    users.getUser(
+        chatId,
+        (user)=>{
 
 
-        if(!user){
+            if(!user){
+
+                bot.sendMessage(
+                    chatId,
+                    "Profile পাওয়া যায়নি ❌"
+                );
+
+                return;
+            }
+
+
 
             bot.sendMessage(
                 chatId,
-                "User profile পাওয়া যায়নি ❌"
-            );
-
-            return;
-        }
-
-
-        bot.sendMessage(
-            chatId,
-`👤 User Profile
+`
+👤 NoorSepiens Profile
 
 Name: ${user.first_name}
 
 Username: @${user.username || "none"}
 
-ID: ${user.telegram_id}
+Telegram ID: ${user.telegram_id}
 
-Join Date: ${user.created_at}`
-        );
+Joined: ${user.created_at}
+`
+            );
 
 
-    });
+        }
+    );
+
 
 });
+
+
+
 
 
 
@@ -94,42 +109,51 @@ Join Date: ${user.created_at}`
 
 bot.onText(/\/memory/, (msg)=>{
 
+
     const chatId = msg.chat.id;
 
 
-    memory.getMemory(chatId,(data)=>{
+    memory.getMemory(
+        chatId,
+        (data)=>{
 
 
-        if(data.length === 0){
+            if(data.length===0){
+
+                bot.sendMessage(
+                    chatId,
+                    "Memory empty 🧠"
+                );
+
+                return;
+            }
+
+
+            let text="🧠 Short Memory\n\n";
+
+
+            data.forEach(item=>{
+
+                text += 
+                `${item.role}: ${item.message}\n\n`;
+
+            });
+
 
             bot.sendMessage(
                 chatId,
-                "Memory empty 🧠"
+                text
             );
 
-            return;
+
         }
+    );
 
-
-        let text="🧠 Your Memory:\n\n";
-
-
-        data.forEach(item=>{
-
-            text += `${item.role}: ${item.message}\n\n`;
-
-        });
-
-
-        bot.sendMessage(
-            chatId,
-            text
-        );
-
-
-    });
 
 });
+
+
+
 
 
 
@@ -142,40 +166,48 @@ bot.onText(/\/longmemory/, (msg)=>{
     const chatId = msg.chat.id;
 
 
-    longMemory.getLongMemory(chatId,(data)=>{
+    longMemory.getLongMemory(
+        chatId,
+        (data)=>{
 
 
-        if(data.length === 0){
+            if(data.length===0){
+
+                bot.sendMessage(
+                    chatId,
+                    "Long Memory empty 🧠"
+                );
+
+                return;
+            }
+
+
+
+            let text="🧠 Long Term Memory\n\n";
+
+
+            data.forEach(item=>{
+
+                text +=
+                `${item.key}: ${item.value}\n`;
+
+            });
+
 
             bot.sendMessage(
                 chatId,
-                "Long Memory empty 🧠"
+                text
             );
 
-            return;
+
         }
-
-
-        let text="🧠 Long Memory:\n\n";
-
-
-        data.forEach(item=>{
-
-            text += `${item.key}: ${item.value}\n`;
-
-        });
-
-
-        bot.sendMessage(
-            chatId,
-            text
-        );
-
-
-    });
+    );
 
 
 });
+
+
+
 
 
 
@@ -193,7 +225,7 @@ bot.onText(/\/clear/, (msg)=>{
 
     bot.sendMessage(
         chatId,
-        "Memory cleared ✅"
+        "Short Memory cleared ✅"
     );
 
 
@@ -203,16 +235,22 @@ bot.onText(/\/clear/, (msg)=>{
 
 
 
-// CHAT MESSAGE
+
+
+
+
+// CHAT SYSTEM
 
 bot.on("message", async(msg)=>{
 
 
-    if(!msg.text) return;
+    if(!msg.text)
+        return;
 
 
     if(msg.text.startsWith("/"))
         return;
+
 
 
     const chatId = msg.chat.id;
@@ -227,7 +265,9 @@ bot.on("message", async(msg)=>{
 
 
 
-    // Save memory
+
+
+    // Save user message
 
     memory.saveMemory(
         chatId,
@@ -237,12 +277,19 @@ bot.on("message", async(msg)=>{
 
 
 
-    // Save name
 
-    const nameMatch = userText.match(/আমার নাম (.+)/);
+
+
+    // Auto detect name
+
+
+    const nameMatch =
+    userText.match(/আমার নাম\s*(.+)/);
+
 
 
     if(nameMatch){
+
 
         longMemory.saveLongMemory(
             chatId,
@@ -250,22 +297,113 @@ bot.on("message", async(msg)=>{
             nameMatch[1]
         );
 
+
     }
 
 
 
-    memory.getMemory(
+
+
+
+
+    // Get all context
+
+
+    users.getUser(
         chatId,
-        async(history)=>{
+        (user)=>{
 
 
-            const messages=[
+        longMemory.getLongMemory(
+            chatId,
+            (longData)=>{
+
+
+            memory.getMemory(
+                chatId,
+                async(history)=>{
+
+
+
+                let profileContext="";
+
+
+
+                if(user){
+
+                    profileContext =
+`
+User Profile:
+
+Name:
+${user.first_name}
+
+Username:
+${user.username || "none"}
+`;
+
+                }
+
+
+
+
+
+
+                let longContext="";
+
+
+
+                longData.forEach(item=>{
+
+
+                    longContext +=
+                    `${item.key}: ${item.value}\n`;
+
+
+                });
+
+
+
+
+
+
+
+
+                const messages=[
+
 
                 {
-                    role:"system",
-                    content:
-                    "You are NoorSepiens AI. Reply naturally in Bangla. Be helpful."
+
+                role:"system",
+
+                content:
+
+`
+You are NoorSepiens AI.
+
+You are a personal AI assistant.
+
+Reply naturally in Bangla.
+
+Remember the user information.
+
+${profileContext}
+
+
+Long Term Memory:
+
+${longContext}
+
+
+Use memory when answering.
+
+Be friendly and intelligent.
+`
+
                 },
+
+
+
 
 
                 ...history.map(h=>({
@@ -275,28 +413,59 @@ bot.on("message", async(msg)=>{
 
                 }))
 
-            ];
+
+
+                ];
 
 
 
-            const reply = await askAI(messages);
 
 
 
-            memory.saveMemory(
-                chatId,
-                "assistant",
-                reply
+                const reply = await askAI(messages);
+
+
+
+
+
+
+                // Save AI reply
+
+
+                memory.saveMemory(
+                    chatId,
+                    "assistant",
+                    reply
+                );
+
+
+
+
+
+                bot.sendMessage(
+                    chatId,
+                    reply
+                );
+
+
+
+
+
+                }
+
+
             );
 
 
-            bot.sendMessage(
-                chatId,
-                reply
-            );
+
+            }
+
+        );
+
 
 
         }
+
     );
 
 
