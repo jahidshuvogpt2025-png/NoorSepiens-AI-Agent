@@ -1,12 +1,14 @@
 require("dotenv").config();
-users.createUsersTable();
 
 const TelegramBot = require("node-telegram-bot-api");
-const users = require("./users");
 
+const users = require("./users");
 const askAI = require("./ai");
 const memory = require("./memory");
 const longMemory = require("./longmemory");
+
+
+users.createUsersTable();
 
 
 const bot = new TelegramBot(
@@ -21,9 +23,8 @@ console.log("NoorSepiens AI Started ✅");
 
 
 
-// START COMMAND
+// START
 
-bot.onText(/\/start/, (msg)=>{
 bot.onText(/\/start/, (msg)=>{
 
     const chatId = msg.chat.id;
@@ -44,7 +45,12 @@ bot.onText(/\/start/, (msg)=>{
 
 });
 
-    bot.onText(/\/profile/, (msg)=>{
+
+
+
+// PROFILE
+
+bot.onText(/\/profile/, (msg)=>{
 
     const chatId = msg.chat.id;
 
@@ -79,13 +85,12 @@ Join Date: ${user.created_at}`
 
     });
 
-
 });
 
 
 
 
-// MEMORY COMMAND
+// MEMORY
 
 bot.onText(/\/memory/, (msg)=>{
 
@@ -106,7 +111,6 @@ bot.onText(/\/memory/, (msg)=>{
         }
 
 
-
         let text="🧠 Your Memory:\n\n";
 
 
@@ -115,7 +119,6 @@ bot.onText(/\/memory/, (msg)=>{
             text += `${item.role}: ${item.message}\n\n`;
 
         });
-
 
 
         bot.sendMessage(
@@ -131,8 +134,7 @@ bot.onText(/\/memory/, (msg)=>{
 
 
 
-
-// LONG MEMORY COMMAND
+// LONG MEMORY
 
 bot.onText(/\/longmemory/, (msg)=>{
 
@@ -154,7 +156,6 @@ bot.onText(/\/longmemory/, (msg)=>{
         }
 
 
-
         let text="🧠 Long Memory:\n\n";
 
 
@@ -163,7 +164,6 @@ bot.onText(/\/longmemory/, (msg)=>{
             text += `${item.key}: ${item.value}\n`;
 
         });
-
 
 
         bot.sendMessage(
@@ -176,8 +176,6 @@ bot.onText(/\/longmemory/, (msg)=>{
 
 
 });
-
-
 
 
 
@@ -205,8 +203,7 @@ bot.onText(/\/clear/, (msg)=>{
 
 
 
-
-// USER MESSAGE
+// CHAT MESSAGE
 
 bot.on("message", async(msg)=>{
 
@@ -218,14 +215,19 @@ bot.on("message", async(msg)=>{
         return;
 
 
-
     const chatId = msg.chat.id;
 
     const userText = msg.text;
 
 
 
-    // Save short memory
+    // Register user
+
+    users.registerUser(msg.from);
+
+
+
+    // Save memory
 
     memory.saveMemory(
         chatId,
@@ -235,14 +237,12 @@ bot.on("message", async(msg)=>{
 
 
 
-
-    // Save name to long memory
+    // Save name
 
     const nameMatch = userText.match(/আমার নাম (.+)/);
 
 
     if(nameMatch){
-
 
         longMemory.saveLongMemory(
             chatId,
@@ -250,11 +250,7 @@ bot.on("message", async(msg)=>{
             nameMatch[1]
         );
 
-
     }
-
-
-
 
 
 
@@ -283,10 +279,7 @@ bot.on("message", async(msg)=>{
 
 
 
-
-
             const reply = await askAI(messages);
-
 
 
 
@@ -297,12 +290,10 @@ bot.on("message", async(msg)=>{
             );
 
 
-
             bot.sendMessage(
                 chatId,
                 reply
             );
-
 
 
         }
