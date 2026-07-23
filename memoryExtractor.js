@@ -14,15 +14,12 @@ function convertBanglaNumber(str){
 
         const index = bangla.indexOf(ch);
 
-        return index > -1
-        ? english[index]
-        : ch;
+        return index >= 0 ? english[index] : ch;
 
     })
     .join("");
 
 }
-
 
 
 
@@ -33,57 +30,55 @@ async function extractMemory(chatId, text){
     const patterns = [
 
 
-        // Name
         {
             regex:/আমার নাম\s*(?:হলো|হয়|হয়|:)?\s*([^\s?!.,]+)/,
             key:"name"
         },
 
 
-        // Age
         {
-            regex:/আমার বয়স\s*(?:হলো|হয়|:)?\s*([০-৯0-9]+)/,
+            regex:/আমার বয়স\s*(?:হলো|হয়|হয়|:)?\s*([০-৯0-9]+)/,
             key:"age"
         },
 
 
-        // Location
         {
             regex:/আমি\s+(.+?)\s+থাকি/,
             key:"location"
         },
 
 
-        // Study
         {
             regex:/আমি\s+(.+?)\s*(?:পড়ি|পড়ি|পড়াশোনা করি|পড়াশোনা করি)/,
             key:"study"
         },
 
 
-        // Work / Profession
         {
-            regex:/আমি\s+(.+?)\s*(?:কাজ করি|কাজ করি)/,
-            key:"work"
+            regex:/(?:আমি|আমার)\s+(.+?)\s*(?:শিখছি|শিখতেছি)/,
+            key:"skill"
         },
 
 
-        // Interest
         {
-            regex:/(?:আমি|আমার)\s+(.+?)\s*(?:ভালো লাগে|পছন্দ করি|পছন্দ)/,
-            key:"interest"
-        },
-
-
-        // Goal
-        {
-            regex:/(?:আমার লক্ষ্য|আমি হতে চাই|আমি হতে চাই:)\s*(.+)/,
+            regex:/আমার লক্ষ্য\s*(?:হলো|হয়|হয়|:)?\s*(.+)/,
             key:"goal"
+        },
+
+
+        {
+            regex:/আমার\s+(.+?)\s*(?:ভালো লাগে|পছন্দ করি)/,
+            key:"like"
+        },
+
+
+        {
+            regex:/আমার\s+(.+?)\s*(?:ভালো লাগে না|পছন্দ করি না)/,
+            key:"dislike"
         }
 
 
     ];
-
 
 
 
@@ -94,7 +89,6 @@ async function extractMemory(chatId, text){
         const match = text.match(item.regex);
 
 
-
         if(match){
 
 
@@ -102,7 +96,7 @@ async function extractMemory(chatId, text){
 
 
 
-            if(item.key==="age"){
+            if(item.key === "age"){
 
                 value = convertBanglaNumber(value);
 
@@ -118,17 +112,14 @@ async function extractMemory(chatId, text){
 
 
             console.log(
-                "Memory saved:",
+                "Profile Memory:",
                 item.key,
                 value
             );
 
-
         }
 
-
     }
-
 
 }
 
