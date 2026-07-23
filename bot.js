@@ -410,7 +410,7 @@ ${user.username || "none"}
 
 
 
-                let longContext="";
+                let longContext = "No saved memory.";
 
 
 
