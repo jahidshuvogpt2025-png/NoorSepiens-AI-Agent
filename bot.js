@@ -64,102 +64,52 @@ async function startBot(){
 
 // PROFILE
 
-bot.onText(/\/profile/, (msg)=>{
 
-    const chatId = msg.chat.id;
+  bot.onText(/\/profile/, async(msg)=>{
 
+    const userId = msg.from.id;
 
     users.getUser(
-        chatId,
+        userId,
         (user)=>{
-
 
             if(!user){
 
                 bot.sendMessage(
-                    chatId,
+                    msg.chat.id,
                     "Profile পাওয়া যায়নি ❌"
                 );
 
                 return;
-
             }
 
 
-
-            longMemory.getLongMemory(
-                chatId,
-                (memoryData)=>{
-
-
-                    let memoryText = "";
-
-
-                    if(memoryData.length > 0){
-
-
-                        memoryData.forEach(item=>{
-
-                            memoryText +=
-`${item.key}: ${item.value}\n`;
-
-                        });
-
-
-                    }else{
-
-                        memoryText =
-                        "কোনো Memory নেই";
-
-                    }
-
-
-
-
-                    bot.sendMessage(
-                        chatId,
+            bot.sendMessage(
+                msg.chat.id,
 `
-👤 NoorSepiens Profile
-
+👤 User Profile
 
 Name:
 ${user.first_name}
 
-
 Username:
 @${user.username || "none"}
 
-
-Telegram ID:
+ID:
 ${user.telegram_id}
 
-
-
-🧠 AI Memory:
-
-${memoryText}
-
-
-Joined:
-${user.created_at || "unknown"}
+Join:
+${user.created_at}
 `
-                    );
-
-
-                }
             );
-
 
         }
     );
 
-
 });
   
-
-
-
-    // MEMORY
+  
+  //MEMORY
 
     bot.onText(/\/memory/, (msg)=>{
 
