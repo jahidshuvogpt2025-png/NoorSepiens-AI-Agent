@@ -1,36 +1,96 @@
 const db = require("./database");
 
-function saveMemory(userId, role, message) {
-    db.run(
-        "INSERT INTO memory (user_id, role, message) VALUES (?, ?, ?)",
-        [userId, role, message]
-    );
+
+// Save Short Memory
+
+async function saveMemory(userId, role, message){
+
+    await db.read();
+
+    db.data.memory.push({
+
+        id: Date.now(),
+
+        user_id: String(userId),
+
+        role: role,
+
+        message: message,
+
+        time: new Date().toISOString()
+
+    });
+
+
+    // Keep last 20 messages
+
+    db.data.memory =
+    db.data.memory.filter(item =>
+        item.user_id === String(userId)
+    ).slice(-20);
+
+
+    await db.write();
+
 }
 
-function getMemory(userId, callback) {
-    db.all(
-        "SELECT role, message FROM memory WHERE user_id = ? ORDER BY id DESC LIMIT 20",
-        [userId],
-        (err, rows) => {
-            if (err) {
-                callback([]);
-                return;
-            }
 
-            callback(rows.reverse());
-        }
-    );
+
+
+
+// Get Short Memory
+
+async function getMemory(userId, callback){
+
+    await db.read();
+
+
+    const rows =
+    db.data.memory
+    .filter(item =>
+        item.user_id === String(userId)
+    )
+    .slice(-20)
+    .map(item=>({
+
+        role:item.role,
+
+        message:item.message
+
+    }));
+
+
+    callback(rows);
+
 }
 
-function clearMemory(userId) {
-    db.run(
-        "DELETE FROM memory WHERE user_id = ?",
-        [userId]
+
+
+
+
+// Clear Short Memory
+
+async function clearMemory(userId){
+
+    await db.read();
+
+
+    db.data.memory =
+    db.data.memory.filter(item =>
+        item.user_id !== String(userId)
     );
+
+
+    await db.write();
+
 }
+
+
 
 module.exports = {
+
     saveMemory,
     getMemory,
     clearMemory
+
 };
