@@ -1,46 +1,53 @@
-const { saveLongMemory } = require("./longmemory");
+const longMemory = require("./longmemory");
+
+
+// Convert Bangla number to English number
+function convertBanglaNumber(str){
+
+    const bangla = "০১২৩৪৫৬৭৮৯";
+    const english = "0123456789";
+
+    return str
+    .split("")
+    .map(ch=>{
+        const index = bangla.indexOf(ch);
+
+        return index > -1 
+        ? english[index]
+        : ch;
+
+    })
+    .join("");
+
+}
 
 
 
-async function extractMemory(chatId, text){
+
+function extractMemory(chatId, text){
 
 
     const patterns = [
 
 
+        // Name
         {
-            regex:/আমার নাম\s*(?:হলো|হয়|হয়|:)?\s*([^\s.,!?]+)/,
+            regex: /(?:আমার নাম|আমাকে)\s*(?:হলো|হয়|হয়|:)?\s*([^\s?!.,]+)/,
             key:"name"
         },
 
 
+        // Age
         {
-            regex:/আমার বয়স\s*(\d+)/,
+            regex: /আমার বয়স\s*([০-৯0-9]+)/,
             key:"age"
         },
 
 
+        // Location
         {
-            regex:/আমি\s*(.+?)\s*থাকি/,
+            regex: /আমি\s*(.+?)\s*থাকি/,
             key:"location"
-        },
-
-
-        {
-            regex:/আমি\s*(.+?)\s*পড়ি/,
-            key:"education"
-        },
-
-
-        {
-            regex:/আমার পছন্দ\s*(.+)/,
-            key:"favorite"
-        },
-
-
-        {
-            regex:/আমি\s*(.+?)\s*কাজ করি/,
-            key:"profession"
         }
 
 
@@ -48,19 +55,31 @@ async function extractMemory(chatId, text){
 
 
 
-    for(const item of patterns){
+
+    patterns.forEach(item=>{
 
 
         const match = text.match(item.regex);
 
 
+
         if(match){
 
 
-            const value = match[1].trim();
+            let value = match[1].trim();
 
 
-            await saveLongMemory(
+
+            // Convert age number
+            if(item.key === "age"){
+
+                value = convertBanglaNumber(value);
+
+            }
+
+
+
+            longMemory.saveLongMemory(
                 chatId,
                 item.key,
                 value
@@ -70,14 +89,17 @@ async function extractMemory(chatId, text){
         }
 
 
-    }
-
+    });
 
 
 }
 
 
 
+
+
 module.exports = {
+
     extractMemory
+
 };
