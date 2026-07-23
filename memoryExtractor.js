@@ -1,69 +1,46 @@
-// NoorSepiens Auto Memory Extractor v1.0
+const longMemory = require("./longmemory");
 
 
-function extractMemory(text){
+function extractMemory(chatId, text){
 
-    let memories = [];
+    const patterns = [
 
+        {
+            regex: /আমার নাম\s*(\S+)/,
+            key:"name"
+        },
 
-    // Location
+        {
+            regex: /আমি\s*(\S+)\s*থাকি/,
+            key:"location"
+        },
 
-    const location =
-    text.match(/আমি\s+(.+)\s+থাকি/);
+        {
+            regex: /আমার বয়স\s*(\d+)/,
+            key:"age"
+        }
 
-    if(location){
-
-        memories.push({
-
-            key:"location",
-            value:location[1]
-
-        });
-
-    }
-
-
-
-    // Learning / Interest
-
-    const learning =
-    text.match(/আমি\s+(.+)\s+শিখছি/);
-
-    if(learning){
-
-        memories.push({
-
-            key:"interest",
-            value:learning[1]
-
-        });
-
-    }
+    ];
 
 
+    patterns.forEach(item=>{
 
-    // Favorite
-
-    const favorite =
-    text.match(/আমার প্রিয়\s+(.+)/);
-
-    if(favorite){
-
-        memories.push({
-
-            key:"favorite",
-            value:favorite[1]
-
-        });
-
-    }
+        const match = text.match(item.regex);
 
 
+        if(match){
 
-    return memories;
+            longMemory.saveLongMemory(
+                chatId,
+                item.key,
+                match[1]
+            );
+
+        }
+
+    });
 
 }
-
 
 
 module.exports = {

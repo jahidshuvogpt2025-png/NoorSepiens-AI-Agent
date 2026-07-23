@@ -301,24 +301,18 @@ async(msg)=>{
     // Save user message
 
     memory.saveMemory(
-        chatId,
-        "user",
-        userText
-    );
-
-  const extracted =
-memoryExtractor.extractMemory(userText);
+    chatId,
+    "user",
+    userText
+);
 
 
-extracted.forEach(item=>{
+// Auto Memory Extractor
 
-    longMemory.saveLongMemory(
-        chatId,
-        item.key,
-        item.value
-    );
-
-});
+memoryExtractor.extractMemory(
+    chatId,
+    userText
+);
 
 
 
