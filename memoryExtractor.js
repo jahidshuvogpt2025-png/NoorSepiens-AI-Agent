@@ -1,7 +1,8 @@
 const longMemory = require("./longmemory");
 
 
-// Convert Bangla number to English number
+// Bangla number convert
+
 function convertBanglaNumber(str){
 
     const bangla = "০১২৩৪৫৬৭৮৯";
@@ -10,9 +11,10 @@ function convertBanglaNumber(str){
     return str
     .split("")
     .map(ch=>{
+
         const index = bangla.indexOf(ch);
 
-        return index > -1 
+        return index > -1
         ? english[index]
         : ch;
 
@@ -24,7 +26,8 @@ function convertBanglaNumber(str){
 
 
 
-function extractMemory(chatId, text){
+
+async function extractMemory(chatId, text){
 
 
     const patterns = [
@@ -32,22 +35,50 @@ function extractMemory(chatId, text){
 
         // Name
         {
-            regex: /(?:আমার নাম|আমাকে)\s*(?:হলো|হয়|হয়|:)?\s*([^\s?!.,]+)/,
+            regex:/আমার নাম\s*(?:হলো|হয়|হয়|:)?\s*([^\s?!.,]+)/,
             key:"name"
         },
 
 
         // Age
         {
-            regex: /আমার বয়স\s*([০-৯0-9]+)/,
+            regex:/আমার বয়স\s*(?:হলো|হয়|:)?\s*([০-৯0-9]+)/,
             key:"age"
         },
 
 
         // Location
         {
-            regex: /আমি\s*(.+?)\s*থাকি/,
+            regex:/আমি\s+(.+?)\s+থাকি/,
             key:"location"
+        },
+
+
+        // Study
+        {
+            regex:/আমি\s+(.+?)\s*(?:পড়ি|পড়ি|পড়াশোনা করি|পড়াশোনা করি)/,
+            key:"study"
+        },
+
+
+        // Work / Profession
+        {
+            regex:/আমি\s+(.+?)\s*(?:কাজ করি|কাজ করি)/,
+            key:"work"
+        },
+
+
+        // Interest
+        {
+            regex:/(?:আমি|আমার)\s+(.+?)\s*(?:ভালো লাগে|পছন্দ করি|পছন্দ)/,
+            key:"interest"
+        },
+
+
+        // Goal
+        {
+            regex:/(?:আমার লক্ষ্য|আমি হতে চাই|আমি হতে চাই:)\s*(.+)/,
+            key:"goal"
         }
 
 
@@ -56,7 +87,8 @@ function extractMemory(chatId, text){
 
 
 
-    patterns.forEach(item=>{
+
+    for(const item of patterns){
 
 
         const match = text.match(item.regex);
@@ -70,8 +102,7 @@ function extractMemory(chatId, text){
 
 
 
-            // Convert age number
-            if(item.key === "age"){
+            if(item.key==="age"){
 
                 value = convertBanglaNumber(value);
 
@@ -79,8 +110,15 @@ function extractMemory(chatId, text){
 
 
 
-            longMemory.saveLongMemory(
+            await longMemory.saveLongMemory(
                 chatId,
+                item.key,
+                value
+            );
+
+
+            console.log(
+                "Memory saved:",
                 item.key,
                 value
             );
@@ -89,7 +127,7 @@ function extractMemory(chatId, text){
         }
 
 
-    });
+    }
 
 
 }
