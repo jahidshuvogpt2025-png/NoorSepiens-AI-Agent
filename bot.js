@@ -312,7 +312,7 @@ async(msg)=>{
 
     // Name Detection (Smart)
 
-const nameMatch = userText.match(/(?:আমার নাম|আমাকে)\s+([^\s?!.]+)/);
+const nameMatch = userText.match(/(?:আমার নাম|আমাকে)\s*(?:হলো|হয়|হয়|:)?\s*([^\s?!.,]+)/);
 
 if(nameMatch){
 
