@@ -62,54 +62,88 @@ async function startBot(){
 
 
 
-// PROFILE
+// PROFILE v2
 
+bot.onText(/\/profile/, async (msg)=>{
 
-  bot.onText(/\/profile/, async(msg)=>{
+    const chatId = msg.chat.id;
 
-    const userId = msg.from.id;
 
     users.getUser(
-        userId,
-        (user)=>{
+        chatId,
+        async (user)=>{
+
 
             if(!user){
 
                 bot.sendMessage(
-                    msg.chat.id,
+                    chatId,
                     "Profile পাওয়া যায়নি ❌"
                 );
 
                 return;
+
             }
 
 
-            bot.sendMessage(
-                msg.chat.id,
-`
-👤 User Profile
 
-Name:
-${user.first_name}
+            longMemory.getLongMemory(
+                chatId,
+                (memoryData)=>{
 
-Username:
-@${user.username || "none"}
 
-ID:
+                    let profileText = `
+🤖 NoorSepiens AI Profile
+
+👤 Name:
+${user.first_name || "Unknown"}
+
+🆔 Telegram ID:
 ${user.telegram_id}
 
-Join:
+📅 Join:
 ${user.created_at}
-`
+
+`;
+
+
+
+                    if(memoryData.length > 0){
+
+
+                        profileText += "\n🧠 AI Memory\n\n";
+
+
+                        memoryData.forEach(item=>{
+
+                            profileText +=
+`${item.key}: ${item.value}\n`;
+
+                        });
+
+
+                    }
+
+
+
+                    bot.sendMessage(
+                        chatId,
+                        profileText
+                    );
+
+
+                }
             );
+
+
 
         }
     );
 
+
 });
-  
-  
-  //MEMORY
+          
+          //MEMORY
 
     bot.onText(/\/memory/, (msg)=>{
 
