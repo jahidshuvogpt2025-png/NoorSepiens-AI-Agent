@@ -61,14 +61,11 @@ async function startBot(){
     });
 
 
-
 // ================= AI PROFILE CARD =================
 
 bot.onText(/\/profile/, async(msg)=>{
 
-
-    const userId = msg.from.id;
-
+    const userId = String(msg.from.id);
 
 
     users.getUser(
@@ -78,7 +75,6 @@ bot.onText(/\/profile/, async(msg)=>{
 
 
             longMemory.getLongMemory(
-
                 userId,
 
                 (memoryData)=>{
@@ -101,15 +97,12 @@ bot.onText(/\/profile/, async(msg)=>{
 
 
 
-                    if(memoryData.length > 0){
-
+                    if(memoryData.length){
 
                         memoryData.forEach(item=>{
 
-
                             memoryCard +=
-`🔹 ${item.key}
-${item.value}
+`🔹 ${item.key}: ${item.value}
 
 `;
 
@@ -118,10 +111,7 @@ ${item.value}
 
                     }else{
 
-
-                        memoryCard =
-"No saved memory";
-
+                        memoryCard = "No memory saved";
 
                     }
 
@@ -129,18 +119,16 @@ ${item.value}
 
 
 
+                    bot.sendMessage(
 
-                    const profileCard =
+                        userId,
 
 `
-🤖 NoorSepiens AI
+🤖 NoorSepiens AI Profile
 ━━━━━━━━━━━━━━
 
-👤 USER PROFILE
-
-
-🪪 Name:
-${user.first_name || "Unknown"}
+👤 Name:
+${user.first_name}
 
 
 📱 Username:
@@ -151,33 +139,21 @@ ${user.first_name || "Unknown"}
 ${user.telegram_id}
 
 
-
 📅 Joined:
 ${user.created_at}
 
 
 
-🧠 LONG TERM MEMORY
+🧠 Long Term Memory:
 
 ${memoryCard}
 
 
 ━━━━━━━━━━━━━━
-✨ Powered by NoorSepiens AI
-`;
-
-
-
-
-
-                    bot.sendMessage(
-
-                        userId,
-
-                        profileCard
+✨ NoorSepiens AI
+`
 
                     );
-
 
 
                 }
