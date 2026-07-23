@@ -1,46 +1,81 @@
-const longMemory = require("./longmemory");
+const { saveLongMemory } = require("./longmemory");
 
 
-function extractMemory(chatId, text){
+
+async function extractMemory(chatId, text){
+
 
     const patterns = [
 
+
         {
-            regex: /আমার নাম\s*(\S+)/,
+            regex:/আমার নাম\s*(?:হলো|হয়|হয়|:)?\s*([^\s.,!?]+)/,
             key:"name"
         },
 
+
         {
-            regex: /আমি\s*(\S+)\s*থাকি/,
+            regex:/আমার বয়স\s*(\d+)/,
+            key:"age"
+        },
+
+
+        {
+            regex:/আমি\s*(.+?)\s*থাকি/,
             key:"location"
         },
 
+
         {
-            regex: /আমার বয়স\s*(\d+)/,
-            key:"age"
+            regex:/আমি\s*(.+?)\s*পড়ি/,
+            key:"education"
+        },
+
+
+        {
+            regex:/আমার পছন্দ\s*(.+)/,
+            key:"favorite"
+        },
+
+
+        {
+            regex:/আমি\s*(.+?)\s*কাজ করি/,
+            key:"profession"
         }
+
 
     ];
 
 
-    patterns.forEach(item=>{
+
+    for(const item of patterns){
+
 
         const match = text.match(item.regex);
 
 
         if(match){
 
-            longMemory.saveLongMemory(
+
+            const value = match[1].trim();
+
+
+            await saveLongMemory(
                 chatId,
                 item.key,
-                match[1]
+                value
             );
+
 
         }
 
-    });
+
+    }
+
+
 
 }
+
 
 
 module.exports = {
