@@ -1,183 +1,111 @@
-const db = require("./database");
+const { db } = require("./database");
 
 
 // Create Long Memory Table
 
 function createLongMemoryTable(){
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS long_memory (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            key TEXT,
-            value TEXT,
-            created DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
-
+    // lowdb এ table create লাগে না
 }
 
 
 
-// Save Smart Long Memory
 
-function saveLongMemory(userId, key, value){
+// Save Long Memory
+
+async function saveLongMemory(userId, key, value){
+
+    await db.read();
 
     userId = String(userId);
+
     value = String(value).trim();
 
 
-    if(!value || value.length < 2){
-        return;
+    const existing = db.data.long_memory.find(
+        m => m.user_id === userId && m.key === key
+    );
+
+
+    if(existing){
+
+        existing.value = value;
+        existing.created = new Date().toISOString();
+
+    }else{
+
+        db.data.long_memory.push({
+
+            id: Date.now(),
+
+            user_id: userId,
+
+            key: key,
+
+            value: value,
+
+            created: new Date().toISOString()
+
+        });
+
     }
 
 
-    db.get(
-        `
-        SELECT id,value 
-        FROM long_memory
-        WHERE user_id=? AND key=?
-        `,
-        [
-            userId,
-            key
-        ],
-        (err,row)=>{
-
-
-            if(row){
-
-
-                // Avoid duplicate update
-
-                if(row.value !== value){
-
-                    db.run(
-                        `
-                        UPDATE long_memory
-                        SET value=?, created=CURRENT_TIMESTAMP
-                        WHERE id=?
-                        `,
-                        [
-                            value,
-                            row.id
-                        ]
-                    );
-
-                }
-
-
-            }else{
-
-
-                db.run(
-                    `
-                    INSERT INTO long_memory
-                    (user_id,key,value)
-                    VALUES (?,?,?)
-                    `,
-                    [
-                        userId,
-                        key,
-                        value
-                    ]
-                );
-
-
-            }
-
-
-            // Keep maximum 50 memories
-
-            db.run(
-                `
-                DELETE FROM long_memory
-                WHERE user_id=?
-                AND id NOT IN (
-                    SELECT id 
-                    FROM long_memory
-                    WHERE user_id=?
-                    ORDER BY id DESC
-                    LIMIT 50
-                )
-                `,
-                [
-                    userId,
-                    userId
-                ]
-            );
-
-
-        }
-    );
+    await db.write();
 
 }
+
 
 
 
 
 // Get Long Memory
 
-function getLongMemory(userId, callback){
+async function getLongMemory(userId, callback){
 
-    userId = String(userId);
-
-
-    db.all(
-        `
-        SELECT key,value
-        FROM long_memory
-        WHERE user_id=?
-        ORDER BY id DESC
-        `,
-        [
-            userId
-        ],
-        (err,rows)=>{
+    await db.read();
 
 
-            if(err){
-                callback([]);
-                return;
-            }
-
-
-            callback(rows);
-
-        }
+    const data = db.data.long_memory.filter(
+        m => m.user_id === String(userId)
     );
 
+
+    callback(data);
+
 }
+
 
 
 
 
 // Clear Long Memory
 
-function clearLongMemory(userId){
+async function clearLongMemory(userId){
 
-    userId = String(userId);
+    await db.read();
 
 
-    db.run(
-        `
-        DELETE FROM long_memory
-        WHERE user_id=?
-        `,
-        [
-            userId
-        ]
+    db.data.long_memory =
+    db.data.long_memory.filter(
+        m => m.user_id !== String(userId)
     );
 
+
+    await db.write();
+
 }
+
 
 
 
 module.exports = {
 
     createLongMemoryTable,
+
     saveLongMemory,
+
     getLongMemory,
+
     clearLongMemory
 
 };

@@ -1,74 +1,77 @@
-const db = require("./database");
+const { db } = require("./database");
 
 
-// Create users table
-
+// Create Users Table
 function createUsersTable(){
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id TEXT UNIQUE,
-            username TEXT,
-            first_name TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
-
+    // lowdb এ table create লাগে না
+    console.log("Users system ready ✅");
 }
 
 
 
-// Register new user
+// Register User
 
-function registerUser(user){
+async function registerUser(user){
 
-    db.run(
-        `
-        INSERT OR IGNORE INTO users
-        (telegram_id, username, first_name)
-        VALUES (?, ?, ?)
-        `,
-        [
-            user.id,
-            user.username || "",
-            user.first_name || ""
-        ]
+    await db.read();
+
+
+    const exists = db.data.users.find(
+        u => u.telegram_id === String(user.id)
     );
 
+
+    if(!exists){
+
+        db.data.users.push({
+
+            telegram_id: String(user.id),
+
+            username: user.username || "",
+
+            first_name: user.first_name || "",
+
+            created_at: new Date().toISOString()
+
+        });
+
+
+        await db.write();
+
+    }
+
 }
 
 
 
 
-// Get user profile
 
-function getUser(userId, callback){
+// Get User
 
-    db.get(
-        `
-        SELECT * FROM users 
-        WHERE telegram_id = ?
-        `,
-        [userId],
-        (err,row)=>{
+async function getUser(id, callback){
 
-            if(err){
-                callback(null);
-                return;
-            }
+    await db.read();
 
-            callback(row);
 
-        }
+    const user = db.data.users.find(
+        u => u.telegram_id === String(id)
     );
 
+
+    callback(user);
+
 }
+
+
 
 
 
 module.exports = {
+
     createUsersTable,
+
     registerUser,
+
     getUser
+
 };

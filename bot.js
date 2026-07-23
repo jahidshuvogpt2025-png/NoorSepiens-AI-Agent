@@ -2,6 +2,8 @@ require("dotenv").config();
 
 const TelegramBot = require("node-telegram-bot-api");
 
+const { initDB } = require("./database");
+
 const memoryExtractor = require("./memoryExtractor");
 const users = require("./users");
 const askAI = require("./ai");
@@ -10,84 +12,85 @@ const longMemory = require("./longmemory");
 const personality = require("./personality");
 
 
-// Create database tables
 
-users.createUsersTable();
-longMemory.createLongMemoryTable();
+async function startBot(){
 
 
-
-const bot = new TelegramBot(
-    process.env.BOT_TOKEN,
-    {
-        polling:true
-    }
-);
+    await initDB();
 
 
-console.log("NoorSepiens AI Started ✅");
+    users.createUsersTable();
+
+    longMemory.createLongMemoryTable();
 
 
 
-
-// START COMMAND
-
-bot.onText(/\/start/, (msg)=>{
-
-    const chatId = msg.chat.id;
-
-
-    users.registerUser(msg.from);
+    const bot = new TelegramBot(
+        process.env.BOT_TOKEN,
+        {
+            polling:true
+        }
+    );
 
 
+    console.log("NoorSepiens AI Started ✅");
 
-    bot.sendMessage(
-        chatId,
+
+
+
+    // START
+
+    bot.onText(/\/start/, async(msg)=>{
+
+        const chatId = msg.chat.id;
+
+
+        await users.registerUser(msg.from);
+
+
+        bot.sendMessage(
+            chatId,
 `🤖 NoorSepiens AI
 
 আপনার Personal AI Assistant চালু হয়েছে ✅
 
 আমি আপনার কথা মনে রাখতে পারবো।
 প্রশ্ন করুন।`
-    );
+        );
 
-});
-
-
+    });
 
 
 
 
 
-// PROFILE
 
-bot.onText(/\/profile/, (msg)=>{
+    // PROFILE
 
+    bot.onText(/\/profile/, (msg)=>{
 
-    const chatId = msg.chat.id;
-
-
-
-    users.getUser(
-        chatId,
-        (user)=>{
+        const chatId = msg.chat.id;
 
 
-            if(!user){
+        users.getUser(
+            chatId,
+            (user)=>{
+
+
+                if(!user){
+
+                    bot.sendMessage(
+                        chatId,
+                        "Profile পাওয়া যায়নি ❌"
+                    );
+
+                    return;
+
+                }
+
 
                 bot.sendMessage(
                     chatId,
-                    "Profile পাওয়া যায়নি ❌"
-                );
-
-                return;
-
-            }
-
-
-
-            bot.sendMessage(
-                chatId,
 `
 👤 User Profile
 
@@ -99,253 +102,14 @@ Username:
 
 ID:
 ${user.telegram_id}
-
-Join:
-${user.created_at}
 `
-            );
-
-
-        }
-    );
-
-});
-
-
-
-
-
-
-
-
-
-// SHORT MEMORY
-
-bot.onText(/\/memory/, (msg)=>{
-
-
-    const chatId = msg.chat.id;
-
-
-
-    memory.getMemory(
-        chatId,
-        (data)=>{
-
-
-            if(data.length===0){
-
-                bot.sendMessage(
-                    chatId,
-                    "Memory empty 🧠"
                 );
 
-                return;
-            }
-
-
-
-            let text="🧠 Short Memory\n\n";
-
-
-
-            data.forEach(item=>{
-
-                text +=
-`${item.role}: ${item.message}\n\n`;
-
-            });
-
-
-
-            bot.sendMessage(
-                chatId,
-                text
-            );
-
-
-
-        }
-    );
-
-});
-
-
-
-
-
-
-
-
-
-// LONG MEMORY
-
-bot.onText(/\/longmemory/, (msg)=>{
-
-
-    const chatId = msg.chat.id;
-
-
-
-    longMemory.getLongMemory(
-        chatId,
-        (data)=>{
-
-
-            if(data.length===0){
-
-                bot.sendMessage(
-                    chatId,
-                    "Long Memory empty 🧠"
-                );
-
-                return;
 
             }
-
-
-
-            let text =
-"🧠 Long Term Memory\n\n";
-
-
-
-            data.forEach(item=>{
-
-
-                text +=
-`${item.key}: ${item.value}\n`;
-
-            });
-
-
-
-            bot.sendMessage(
-                chatId,
-                text
-            );
-
-
-
-        }
-    );
-
-});
-
-
-
-
-
-
-
-
-
-// CLEAR MEMORY
-
-bot.onText(/\/clear/, (msg)=>{
-
-
-    const chatId = msg.chat.id;
-
-
-
-    memory.clearMemory(chatId);
-
-
-
-    bot.sendMessage(
-        chatId,
-        "Short Memory cleared ✅"
-    );
-
-});
-
-
-
-
-
-
-
-
-
-// MAIN CHAT
-
-bot.on(
-"message",
-async(msg)=>{
-
-
-    if(!msg.text)
-        return;
-
-
-    if(msg.text.startsWith("/"))
-        return;
-
-
-
-    const chatId = msg.chat.id;
-
-    const userText = msg.text;
-
-
-
-    // Register
-
-    users.registerUser(msg.from);
-
-
-
-
-
-    // Save user message
-
-    memory.saveMemory(
-    chatId,
-    "user",
-    userText
-);
-
-
-// Auto Memory Extractor
-
-memoryExtractor.extractMemory(
-    chatId,
-    userText
-);
-
-
-
-
-
-
-    // Name Detection (Smart)
-
-const nameMatch = userText.match(/(?:আমার নাম|আমাকে)\s*(?:হলো|হয়|হয়|:)?\s*([^\s?!.,]+)/);
-
-if(nameMatch){
-
-    const name = nameMatch[1].trim();
-
-    // Ignore question words
-    const ignoreWords = [
-        "কি",
-        "কী",
-        "বল",
-        "জানো"
-    ];
-
-    if(!ignoreWords.includes(name)){
-
-        longMemory.saveLongMemory(
-            chatId,
-            "name",
-            name
         );
 
-    }
-
-}
+    });
 
 
 
@@ -353,183 +117,307 @@ if(nameMatch){
 
 
 
-    // Personality
+    // MEMORY
 
-    const personalityData =
-    personality.analyzePersonality(
-        userText
-    );
+    bot.onText(/\/memory/, (msg)=>{
 
 
-    const personalityPrompt =
-    personality.getPersonalityPrompt(
-        personalityData
-    );
+        const chatId = msg.chat.id;
 
 
-
-
-
-
-
-
-    users.getUser(
-        chatId,
-        (user)=>{
-
-
-
-        longMemory.getLongMemory(
+        memory.getMemory(
             chatId,
-            (longData)=>{
+            (data)=>{
 
 
+                if(data.length===0){
 
+                    bot.sendMessage(
+                        chatId,
+                        "Memory empty 🧠"
+                    );
 
-
-            memory.getMemory(
-                chatId,
-                async(history)=>{
-
-
-
-
-
-                let profile="";
-
-
-
-                if(user){
-
-                    profile =
-`
-User Profile:
-
-Name:
-${user.first_name}
-
-Username:
-${user.username || "none"}
-`;
+                    return;
 
                 }
 
 
+                let text =
+                "🧠 Short Memory\n\n";
+
+
+                data.forEach(item=>{
+
+                    text +=
+`${item.role}: ${item.message}\n\n`;
+
+                });
+
+
+
+                bot.sendMessage(
+                    chatId,
+                    text
+                );
+
+
+            }
+        );
+
+
+    });
 
 
 
 
-                let longContext = "No saved memory.";
 
 
 
-                longData.forEach(item=>{
+
+    // LONG MEMORY
 
 
-                    longContext +=
+    bot.onText(/\/longmemory/, (msg)=>{
+
+
+        const chatId = msg.chat.id;
+
+
+        longMemory.getLongMemory(
+            chatId,
+            (data)=>{
+
+
+                if(data.length===0){
+
+                    bot.sendMessage(
+                        chatId,
+                        "Long Memory empty 🧠"
+                    );
+
+                    return;
+
+                }
+
+
+                let text =
+                "🧠 Long Term Memory\n\n";
+
+
+                data.forEach(item=>{
+
+                    text +=
 `${item.key}: ${item.value}\n`;
 
                 });
 
 
 
+                bot.sendMessage(
+                    chatId,
+                    text
+                );
+
+
+            }
+        );
+
+
+    });
 
 
 
 
-                const messages=[
 
 
 
-{
 
-role:"system",
+    // CLEAR
 
-content:
+    bot.onText(/\/clear/, async(msg)=>{
 
+
+        const chatId = msg.chat.id;
+
+
+        await memory.clearMemory(chatId);
+
+
+        bot.sendMessage(
+            chatId,
+            "Short Memory cleared ✅"
+        );
+
+
+    });
+
+
+
+
+
+
+
+
+
+    // MAIN CHAT
+
+
+    bot.on(
+    "message",
+    async(msg)=>{
+
+
+        if(!msg.text)
+            return;
+
+
+        if(msg.text.startsWith("/"))
+            return;
+
+
+
+        const chatId = msg.chat.id;
+
+        const userText = msg.text;
+
+
+
+        await users.registerUser(msg.from);
+
+
+
+        await memory.saveMemory(
+            chatId,
+            "user",
+            userText
+        );
+
+
+
+        // Auto Memory
+
+        memoryExtractor.extractMemory(
+            chatId,
+            userText
+        );
+
+
+
+
+
+        const personalityData =
+        personality.analyzePersonality(
+            userText
+        );
+
+
+        const personalityPrompt =
+        personality.getPersonalityPrompt(
+            personalityData
+        );
+
+
+
+
+
+
+        users.getUser(
+            chatId,
+            (user)=>{
+
+
+            longMemory.getLongMemory(
+                chatId,
+                (longData)=>{
+
+
+                memory.getMemory(
+                    chatId,
+                    async(history)=>{
+
+
+
+                    let longContext =
+                    "No saved memory.";
+
+
+
+                    longData.forEach(item=>{
+
+                        longContext +=
+`${item.key}: ${item.value}\n`;
+
+                    });
+
+
+
+
+
+                    const messages=[
+
+                    {
+                        role:"system",
+
+                        content:
 `
 You are NoorSepiens AI.
-
-You are a personal intelligent assistant.
 
 Reply in Bangla.
 
 ${personalityPrompt}
 
 
-${profile}
-
-
-Long Term Memory:
+User Memory:
 
 ${longContext}
 
 
 Use memory naturally.
-
-Be helpful, friendly and smart.
+Be helpful and friendly.
 `
-
-},
-
+                    },
 
 
+                    ...history.map(h=>({
 
-...history.map(h=>({
+                        role:h.role,
 
-role:h.role,
+                        content:h.message
 
-content:h.message
-
-}))
-
+                    }))
 
 
-];
+                    ];
 
 
 
 
 
-
-
-
-                const reply =
-                await askAI(messages);
-
+                    const reply =
+                    await askAI(messages);
 
 
 
 
+                    await memory.saveMemory(
+                        chatId,
+                        "assistant",
+                        reply
+                    );
 
 
-                memory.saveMemory(
 
-                    chatId,
+                    bot.sendMessage(
+                        chatId,
+                        reply
+                    );
 
-                    "assistant",
 
-                    reply
+
+                    }
+
 
                 );
-
-
-
-
-
-
-
-                bot.sendMessage(
-
-                    chatId,
-
-                    reply
-
-                );
-
-
-
-
 
 
                 }
@@ -538,17 +426,19 @@ content:h.message
             );
 
 
-
             }
+
 
         );
 
 
 
-        }
-
-    );
+    });
 
 
 
-});
+}
+
+
+
+startBot();

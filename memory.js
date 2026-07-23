@@ -1,4 +1,5 @@
-const db = require("./database");
+const { db } = require("./database");
+
 
 
 // Save Short Memory
@@ -6,6 +7,7 @@ const db = require("./database");
 async function saveMemory(userId, role, message){
 
     await db.read();
+
 
     db.data.memory.push({
 
@@ -22,12 +24,26 @@ async function saveMemory(userId, role, message){
     });
 
 
-    // Keep last 20 messages
 
-    db.data.memory =
-    db.data.memory.filter(item =>
-        item.user_id === String(userId)
-    ).slice(-20);
+    // Keep last 20 messages per user
+
+    const userMemory = db.data.memory
+        .filter(item => item.user_id === String(userId))
+        .slice(-20);
+
+
+
+    // Remove old user memory
+
+    db.data.memory = db.data.memory.filter(
+        item => item.user_id !== String(userId)
+    );
+
+
+    // Add updated memory
+
+    db.data.memory.push(...userMemory);
+
 
 
     await db.write();
@@ -45,19 +61,22 @@ async function getMemory(userId, callback){
     await db.read();
 
 
-    const rows =
-    db.data.memory
-    .filter(item =>
-        item.user_id === String(userId)
-    )
-    .slice(-20)
-    .map(item=>({
+    const rows = db.data.memory
 
-        role:item.role,
+        .filter(item =>
+            item.user_id === String(userId)
+        )
 
-        message:item.message
+        .slice(-20)
 
-    }));
+        .map(item => ({
+
+            role: item.role,
+
+            message: item.message
+
+        }));
+
 
 
     callback(rows);
@@ -76,9 +95,10 @@ async function clearMemory(userId){
 
 
     db.data.memory =
-    db.data.memory.filter(item =>
-        item.user_id !== String(userId)
-    );
+        db.data.memory.filter(
+            item => item.user_id !== String(userId)
+        );
+
 
 
     await db.write();
@@ -87,10 +107,14 @@ async function clearMemory(userId){
 
 
 
+
+
 module.exports = {
 
     saveMemory,
+
     getMemory,
+
     clearMemory
 
 };

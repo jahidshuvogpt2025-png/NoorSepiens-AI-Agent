@@ -1,51 +1,56 @@
-const sqlite3 = require("sqlite3").verbose();
-
-const db = new sqlite3.Database("./noorsepiens.db");
-
-
-// Memory table
-
-db.serialize(()=>{
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS memory (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            role TEXT,
-            message TEXT,
-            time DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
+const { Low } = require("lowdb");
+const { JSONFile } = require("lowdb/node");
 
 
-    // Long Memory table
+// Database file
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS long_memory (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            key TEXT,
-            value TEXT,
-            created DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
+const adapter = new JSONFile("noorsepiens.json");
+
+
+// Default data
+
+const defaultData = {
+    users: [],
+    memory: [],
+    long_memory: []
+};
+
+
+// Create database
+
+const db = new Low(adapter, defaultData);
 
 
 
-    // Users table
+// Initialize database
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id TEXT UNIQUE,
-            username TEXT,
-            first_name TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
+async function initDB(){
+
+    await db.read();
 
 
-});
+    if(!db.data){
+
+        db.data = defaultData;
+
+    }
 
 
-module.exports = db;
+    db.data.users ||= [];
+    db.data.memory ||= [];
+    db.data.long_memory ||= [];
+
+
+    await db.write();
+
+
+    console.log("Database Ready ✅");
+
+}
+
+
+
+module.exports = {
+    db,
+    initDB
+};
