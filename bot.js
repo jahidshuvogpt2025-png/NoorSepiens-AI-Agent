@@ -62,27 +62,32 @@ async function startBot(){
 
 
 
-// PROFILE
+// ================= AI PROFILE CARD =================
 
 bot.onText(/\/profile/, async(msg)=>{
 
-    const chatId = msg.chat.id;
+
+    const userId = msg.from.id;
+
 
 
     users.getUser(
-        chatId,
+        userId,
+
         (user)=>{
 
 
             longMemory.getLongMemory(
-                chatId,
+
+                userId,
+
                 (memoryData)=>{
 
 
                     if(!user){
 
                         bot.sendMessage(
-                            chatId,
+                            userId,
                             "Profile পাওয়া যায়নি ❌"
                         );
 
@@ -92,52 +97,96 @@ bot.onText(/\/profile/, async(msg)=>{
 
 
 
-                    let longText = "";
-
-
-                    memoryData.forEach(item=>{
-
-                        longText +=
-`${item.key}: ${item.value}\n`;
-
-                    });
+                    let memoryCard = "";
 
 
 
+                    if(memoryData.length > 0){
 
-                    bot.sendMessage(
-                        chatId,
+
+                        memoryData.forEach(item=>{
+
+
+                            memoryCard +=
+`🔹 ${item.key}
+${item.value}
+
+`;
+
+                        });
+
+
+                    }else{
+
+
+                        memoryCard =
+"No saved memory";
+
+
+                    }
+
+
+
+
+
+
+                    const profileCard =
+
 `
-🤖 NoorSepiens AI Profile
+🤖 NoorSepiens AI
+━━━━━━━━━━━━━━
+
+👤 USER PROFILE
 
 
-👤 Name:
+🪪 Name:
 ${user.first_name || "Unknown"}
+
+
+📱 Username:
+@${user.username || "none"}
 
 
 🆔 Telegram ID:
 ${user.telegram_id}
 
 
-📅 Join:
+
+📅 Joined:
 ${user.created_at}
 
 
 
-🧠 Long Term Memory:
+🧠 LONG TERM MEMORY
 
-${longText || "No memory saved"}
+${memoryCard}
 
-`
+
+━━━━━━━━━━━━━━
+✨ Powered by NoorSepiens AI
+`;
+
+
+
+
+
+                    bot.sendMessage(
+
+                        userId,
+
+                        profileCard
+
                     );
 
 
 
                 }
+
             );
 
 
         }
+
     );
 
 
