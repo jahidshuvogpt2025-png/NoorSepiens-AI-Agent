@@ -54,8 +54,8 @@ async function getUser(id, callback){
 
 
     const user = db.data.users.find(
-        u => u.telegram_id === String(id)
-    );
+    u => String(u.telegram_id) === String(id)
+);
 
 
     callback(user);
