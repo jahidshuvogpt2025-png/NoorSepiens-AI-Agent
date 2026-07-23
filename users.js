@@ -1,18 +1,28 @@
-const db = require("./database");
+const { db } = require("./database");
 
 
-// Create Users Table
+// Create Users System
+
 function createUsersTable(){
+
     console.log("Users system ready ✅");
+
 }
 
 
+
+
 // Register User
+
 async function registerUser(user){
 
     await db.read();
 
+
+    db.data ||= {};
+
     db.data.users ||= [];
+
 
 
     const exists = db.data.users.find(
@@ -20,21 +30,32 @@ async function registerUser(user){
     );
 
 
+
     if(!exists){
+
 
         db.data.users.push({
 
             telegram_id: String(user.id),
+
             username: user.username || "",
+
             first_name: user.first_name || "",
+
             created_at: new Date().toISOString()
 
         });
 
 
+
         await db.write();
 
-        console.log("New user saved:", user.id);
+
+        console.log(
+            "New user saved:",
+            user.id
+        );
+
 
     }
 
@@ -42,27 +63,49 @@ async function registerUser(user){
 
 
 
+
+
 // Get User
+
 async function getUser(id, callback){
 
     await db.read();
 
+
+    db.data ||= {};
+
     db.data.users ||= [];
 
 
+
     const user = db.data.users.find(
+
         u => String(u.telegram_id) === String(id)
+
     );
 
 
-    callback(user);
+
+    if(callback){
+
+        callback(user);
+
+    }
+
 
 }
 
 
 
+
+// Export
+
 module.exports = {
+
     createUsersTable,
+
     registerUser,
+
     getUser
+
 };
