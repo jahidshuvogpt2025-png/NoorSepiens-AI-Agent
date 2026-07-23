@@ -1,70 +1,84 @@
-// NoorSepiens Personality Engine v1.0
-
+// NoorSepiens Personality Engine v1.1
 
 function analyzePersonality(text){
-
 
     let personality = {
 
         language: "Bangla",
-
         style: "friendly",
-
         length: "medium",
-
-        tone: "natural"
-
+        tone: "natural",
+        emoji: false,
+        englishMix: false
     };
 
 
-
-    // Short reply preference
+    // Reply length detection
 
     if(text.length < 30){
-
         personality.length = "short";
-
     }
 
-
-
-    // Long explanation preference
-
-    if(text.length > 100){
-
+    if(text.length > 120){
         personality.length = "detailed";
-
     }
 
 
 
-
-    // Casual user detection
+    // Casual style
 
     const casualWords = [
-
         "ভাই",
         "হাই",
+        "হ্যালো",
         "কেমন",
         "কি করো",
         "হুম",
-        "আচ্ছা"
-
+        "আচ্ছা",
+        "ওকে",
+        "ok"
     ];
-
 
 
     casualWords.forEach(word=>{
 
         if(text.includes(word)){
-
-            personality.style="casual";
-
+            personality.style = "casual";
         }
 
     });
 
 
+
+    // Emoji user detection
+
+    const emojiRegex = /[\u{1F300}-\u{1FAFF}]/u;
+
+    if(emojiRegex.test(text)){
+        personality.emoji = true;
+    }
+
+
+
+    // Bangla + English mix detection
+
+    const englishRegex = /[a-zA-Z]/;
+
+    if(englishRegex.test(text)){
+        personality.englishMix = true;
+    }
+
+
+
+    // Question detection
+
+    if(
+        text.includes("?") ||
+        text.includes("কি") ||
+        text.includes("কিভাবে")
+    ){
+        personality.tone = "helpful";
+    }
 
 
 
@@ -74,14 +88,11 @@ function analyzePersonality(text){
 
 
 
-
-
 function getPersonalityPrompt(data){
-
 
 return `
 
-User Personality:
+User Personality Profile:
 
 Language:
 ${data.language}
@@ -95,7 +106,14 @@ ${data.length}
 Tone:
 ${data.tone}
 
-Follow this style while replying.
+Use Emoji:
+${data.emoji}
+
+English Mix:
+${data.englishMix}
+
+
+Always reply according to this user's natural communication style.
 
 `;
 
@@ -103,11 +121,9 @@ Follow this style while replying.
 
 
 
-
 module.exports = {
 
     analyzePersonality,
-
     getPersonalityPrompt
 
 };

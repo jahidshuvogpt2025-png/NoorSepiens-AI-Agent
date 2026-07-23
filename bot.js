@@ -310,25 +310,33 @@ async(msg)=>{
 
 
 
-    // Name Detection
+    // Name Detection (Smart)
 
+const nameMatch = userText.match(/(?:আমার নাম|আমাকে)\s+([^\s?!.]+)/);
 
-    const nameMatch =
-    userText.match(/আমার নাম\s*(.+)/);
+if(nameMatch){
 
+    const name = nameMatch[1].trim();
 
+    // Ignore question words
+    const ignoreWords = [
+        "কি",
+        "কী",
+        "বল",
+        "জানো"
+    ];
 
-    if(nameMatch){
-
+    if(!ignoreWords.includes(name)){
 
         longMemory.saveLongMemory(
             chatId,
             "name",
-            nameMatch[1]
+            name
         );
 
-
     }
+
+}
 
 
 
