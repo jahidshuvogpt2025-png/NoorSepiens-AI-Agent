@@ -62,58 +62,100 @@ async function startBot(){
 
 
 
+// PROFILE
+
+bot.onText(/\/profile/, (msg)=>{
+
+    const chatId = msg.chat.id;
 
 
-
-    // PROFILE
-
-    bot.onText(/\/profile/, (msg)=>{
-
-        const chatId = msg.chat.id;
+    users.getUser(
+        chatId,
+        (user)=>{
 
 
-        users.getUser(
-            chatId,
-            (user)=>{
-
-
-                if(!user){
-
-                    bot.sendMessage(
-                        chatId,
-                        "Profile পাওয়া যায়নি ❌"
-                    );
-
-                    return;
-
-                }
-
+            if(!user){
 
                 bot.sendMessage(
                     chatId,
+                    "Profile পাওয়া যায়নি ❌"
+                );
+
+                return;
+
+            }
+
+
+
+            longMemory.getLongMemory(
+                chatId,
+                (memoryData)=>{
+
+
+                    let memoryText = "";
+
+
+                    if(memoryData.length > 0){
+
+
+                        memoryData.forEach(item=>{
+
+                            memoryText +=
+`${item.key}: ${item.value}\n`;
+
+                        });
+
+
+                    }else{
+
+                        memoryText =
+                        "কোনো Memory নেই";
+
+                    }
+
+
+
+
+                    bot.sendMessage(
+                        chatId,
 `
-👤 User Profile
+👤 NoorSepiens Profile
+
 
 Name:
 ${user.first_name}
 
+
 Username:
 @${user.username || "none"}
 
-ID:
+
+Telegram ID:
 ${user.telegram_id}
+
+
+
+🧠 AI Memory:
+
+${memoryText}
+
+
+Joined:
+${user.created_at || "unknown"}
 `
-                );
+                    );
 
 
-            }
-        );
-
-    });
+                }
+            );
 
 
+        }
+    );
 
 
+});
+  
 
 
 
