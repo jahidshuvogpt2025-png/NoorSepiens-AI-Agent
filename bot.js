@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const TelegramBot = require("node-telegram-bot-api");
 
+const memoryExtractor = require("./memoryExtractor");
 const users = require("./users");
 const askAI = require("./ai");
 const memory = require("./memory");
@@ -304,6 +305,20 @@ async(msg)=>{
         "user",
         userText
     );
+
+  const extracted =
+memoryExtractor.extractMemory(userText);
+
+
+extracted.forEach(item=>{
+
+    longMemory.saveLongMemory(
+        chatId,
+        item.key,
+        item.value
+    );
+
+});
 
 
 
