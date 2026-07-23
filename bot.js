@@ -62,29 +62,16 @@ async function startBot(){
 
 
 
-// PROFILE v2
+// PROFILE
 
-bot.onText(/\/profile/, async (msg)=>{
+bot.onText(/\/profile/, async(msg)=>{
 
     const chatId = msg.chat.id;
 
 
     users.getUser(
         chatId,
-        async (user)=>{
-
-
-            if(!user){
-
-                bot.sendMessage(
-                    chatId,
-                    "Profile পাওয়া যায়নি ❌"
-                );
-
-                return;
-
-            }
-
+        (user)=>{
 
 
             longMemory.getLongMemory(
@@ -92,49 +79,62 @@ bot.onText(/\/profile/, async (msg)=>{
                 (memoryData)=>{
 
 
-                    let profileText = `
-🤖 NoorSepiens AI Profile
+                    if(!user){
 
-👤 Name:
-${user.first_name || "Unknown"}
+                        bot.sendMessage(
+                            chatId,
+                            "Profile পাওয়া যায়নি ❌"
+                        );
 
-🆔 Telegram ID:
-${user.telegram_id}
-
-📅 Join:
-${user.created_at}
-
-`;
-
-
-
-                    if(memoryData.length > 0){
-
-
-                        profileText += "\n🧠 AI Memory\n\n";
-
-
-                        memoryData.forEach(item=>{
-
-                            profileText +=
-`${item.key}: ${item.value}\n`;
-
-                        });
-
+                        return;
 
                     }
 
 
 
+                    let longText = "";
+
+
+                    memoryData.forEach(item=>{
+
+                        longText +=
+`${item.key}: ${item.value}\n`;
+
+                    });
+
+
+
+
                     bot.sendMessage(
                         chatId,
-                        profileText
+`
+🤖 NoorSepiens AI Profile
+
+
+👤 Name:
+${user.first_name || "Unknown"}
+
+
+🆔 Telegram ID:
+${user.telegram_id}
+
+
+📅 Join:
+${user.created_at}
+
+
+
+🧠 Long Term Memory:
+
+${longText || "No memory saved"}
+
+`
                     );
+
 
 
                 }
             );
-
 
 
         }
@@ -142,7 +142,8 @@ ${user.created_at}
 
 
 });
-          
+
+  
           //MEMORY
 
     bot.onText(/\/memory/, (msg)=>{
