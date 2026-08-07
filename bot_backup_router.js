@@ -6,7 +6,7 @@ const { initDB } = require("./database");
 
 const memoryExtractor = require("./memoryExtractor");
 const users = require("./users");
-const router = require("./router");
+const askAI = require("./ai");
 const memory = require("./memory");
 const longMemory = require("./longmemory");
 const personality = require("./personality");
@@ -446,7 +446,7 @@ Be helpful and friendly.
 
 
                     const reply =
-                    await router(messages);
+                    await askAI(messages);
 
 
 
