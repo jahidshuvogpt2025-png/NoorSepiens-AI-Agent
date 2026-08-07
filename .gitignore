@@ -1,3 +1,4 @@
 node_modules/
-noorsepiens.json
 .env
+*.log
+noorsepiens.json
