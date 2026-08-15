@@ -158,6 +158,10 @@ try{
 
 
 
+            console.log(
+"Sending search result back to AI..."
+);
+            
 
             const finalAI =
             await askOpenRouter(
@@ -165,6 +169,10 @@ try{
             );
 
 
+            console.log(
+"Final AI:",
+finalAI
+);
 
             return finalAI.content;
 
