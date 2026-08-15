@@ -492,8 +492,6 @@ if(reply && reply.tool_calls){
 
 }
 
-let finalReply = reply;
-
 
 if (!finalReply || !finalReply.trim()) {
 
