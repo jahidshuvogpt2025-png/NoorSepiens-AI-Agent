@@ -6,7 +6,9 @@ async function askAI(messages) {
     try {
 
         if (!process.env.OPENROUTER_API_KEY) {
+
             return "OpenRouter API key পাওয়া যায়নি ❌";
+
         }
 
 
@@ -29,12 +31,11 @@ async function askAI(messages) {
                         content:
 `তুমি NoorSepiens AI Agent।
 
-তোমার কাজ:
-- ব্যবহারকারীর প্রশ্ন বুঝে উত্তর দেওয়া।
-- যদি তথ্য বর্তমান সময়ের উপর নির্ভর করে (খবর, দাম, আবহাওয়া, রাজনীতি, নতুন তথ্য, ওয়েবসাইট তথ্য) তাহলে web search ব্যবহার করবে।
-- প্রয়োজন হলে ওয়েব পেজ পড়ে তথ্য সংগ্রহ করবে।
-- পাওয়া তথ্য বাংলায় সুন্দরভাবে summarize করবে।
-- অপ্রয়োজনীয় link না দিয়ে মূল তথ্য দেবে।`
+নিয়ম:
+- স্বাভাবিক বাংলায় উত্তর দাও।
+- বর্তমান তথ্য, খবর, দাম, আবহাওয়া, নতুন ঘটনা জানতে হলে web search ব্যবহার করো।
+- তথ্য না জানলে অনুমান করবে না।
+- সংক্ষিপ্ত ও পরিষ্কার উত্তর দাও।`
                     },
 
                     ...messages
@@ -42,77 +43,51 @@ async function askAI(messages) {
                 ],
 
 
-
                 tools: [
 
                     {
                         type: "function",
+
                         function: {
 
                             name: "web_search",
 
                             description:
-                            "Search the internet for latest information",
+                            "Search internet for latest information",
 
                             parameters: {
 
-                                type:"object",
+                                type: "object",
 
                                 properties: {
 
-                                    query:{
-                                        type:"string"
+                                    query: {
+                                        type: "string"
                                     }
 
                                 },
 
-                                required:["query"]
+                                required: [
+                                    "query"
+                                ]
 
                             }
 
                         }
-                    },
 
-
-                    {
-                        type:"function",
-                        function:{
-
-                            name:"web_fetch",
-
-                            description:
-                            "Read webpage content from URL",
-
-                            parameters:{
-
-                                type:"object",
-
-                                properties:{
-
-                                    url:{
-                                        type:"string"
-                                    }
-
-                                },
-
-                                required:["url"]
-
-                            }
-
-                        }
                     }
 
                 ],
 
 
-                temperature:0.7
+                temperature: 0.7
 
             },
 
 
             {
 
-                headers:{
+                headers: {
 
                     Authorization:
                     `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -134,14 +109,47 @@ async function askAI(messages) {
 
 
 
-        return response.data
-        .choices[0]
-        .message
-        .content;
+        const aiMessage =
+        response.data.choices[0].message;
 
 
 
-    } catch(error){
+        // Normal AI reply
+
+        if (
+            aiMessage.content &&
+            aiMessage.content.trim()
+        ) {
+
+            return aiMessage.content;
+
+        }
+
+
+
+        // Tool request
+
+        if (aiMessage.tool_calls) {
+
+
+            console.log(
+                "Tool requested:",
+                aiMessage.tool_calls
+            );
+
+
+            return "আমি তথ্য খুঁজে দেখছি... 🔎";
+
+
+        }
+
+
+
+        return "দুঃখিত, কোনো উত্তর পাওয়া যায়নি ❌";
+
+
+
+    } catch(error) {
 
 
         console.log(
@@ -152,9 +160,11 @@ async function askAI(messages) {
 
         return "AI উত্তর দিতে সমস্যা হচ্ছে ❌";
 
+
     }
 
 }
+
 
 
 module.exports = askAI;
