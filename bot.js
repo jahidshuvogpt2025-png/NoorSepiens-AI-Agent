@@ -449,6 +449,48 @@ Be helpful and friendly.
 await router(messages);
 
 
+                        let finalReply = reply;
+
+
+if(reply && reply.tool_calls){
+
+    console.log("Executing tools...");
+
+
+    const toolResult = await handleTools(
+        reply.tool_calls
+    );
+
+
+    const secondMessages = [
+
+        ...messages,
+
+        {
+            role:"assistant",
+            content:null,
+            tool_calls:reply.tool_calls
+        },
+
+        {
+            role:"tool",
+            tool_call_id:
+            reply.tool_calls[0].id,
+
+            content:
+            JSON.stringify(toolResult)
+
+        }
+
+    ];
+
+
+
+    finalReply = await router(
+        secondMessages
+    );
+
+}
 
 let finalReply = reply;
 
