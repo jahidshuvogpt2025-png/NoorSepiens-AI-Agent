@@ -1,6 +1,7 @@
 const axios = require("axios");
 
 const webSearch = require("./webSearch");
+const browserOpen = require("./browserTool");
 
 
 async function router(messages){
@@ -22,7 +23,6 @@ messages:messages,
 tools:[
 
 {
-
 type:"function",
 
 function:{
@@ -30,8 +30,7 @@ function:{
 name:"web_search",
 
 description:
-"Search the internet for latest information, news, realtime data.",
-
+"Search latest information from internet",
 
 parameters:{
 
@@ -40,13 +39,43 @@ type:"object",
 properties:{
 
 query:{
-type:"string",
-description:"Search query"
+type:"string"
 }
 
 },
 
 required:["query"]
+
+}
+
+}
+
+},
+
+
+{
+type:"function",
+
+function:{
+
+name:"browser_open",
+
+description:
+"Open webpage and read content",
+
+parameters:{
+
+type:"object",
+
+properties:{
+
+url:{
+type:"string"
+}
+
+},
+
+required:["url"]
 
 }
 
@@ -77,10 +106,7 @@ Authorization:
 
 }
 
-
 );
-
-
 
 
 
@@ -89,28 +115,17 @@ response.data.choices[0].message;
 
 
 
-
-// ================= TOOL CALL =================
-
+// TOOL CALL
 
 if(aiMessage.tool_calls){
-
-
-console.log(
-"Tool requested:",
-aiMessage.tool_calls
-);
-
 
 
 const tool =
 aiMessage.tool_calls[0];
 
 
-
-if(
-tool.function.name === "web_search"
-){
+const name =
+tool.function.name;
 
 
 
@@ -121,21 +136,49 @@ tool.function.arguments
 
 
 
+
+
+let result;
+
+
+
+// WEB SEARCH
+
+if(name==="web_search"){
+
+
 console.log(
 "Searching web:",
 args.query
 );
 
 
-
-const searchResult =
+result =
 await webSearch(args.query);
 
 
+}
+
+
+
+
+
+// BROWSER OPEN
+
+if(name==="browser_open"){
+
 
 console.log(
-"Search results received"
+"Opening:",
+args.url
 );
+
+
+result =
+await browserOpen(args.url);
+
+
+}
 
 
 
@@ -143,27 +186,20 @@ console.log(
 
 const secondMessages=[
 
-
 ...messages,
 
-
 aiMessage,
-
-
 
 {
 
 role:"tool",
 
-tool_call_id:
-tool.id,
-
+tool_call_id:tool.id,
 
 content:
-JSON.stringify(searchResult)
+JSON.stringify(result)
 
 }
-
 
 ];
 
@@ -171,14 +207,8 @@ JSON.stringify(searchResult)
 
 
 
-console.log(
-"Sending search result back to AI..."
-);
 
-
-
-
-const finalResponse =
+const final =
 await axios.post(
 
 "https://openrouter.ai/api/v1/chat/completions",
@@ -187,11 +217,9 @@ await axios.post(
 
 model:"openai/gpt-4o-mini",
 
+messages:[
 
-messages:secondMessages,
-
-
-system:{
+{
 
 role:"system",
 
@@ -199,22 +227,22 @@ content:
 `
 তুমি NoorSepiens AI।
 
-ওয়েব সার্চ থেকে পাওয়া তথ্য ব্যবহার করে
-উত্তর তৈরি করবে।
+Search অথবা webpage থেকে পাওয়া তথ্য ব্যবহার করে উত্তর দাও।
 
-ব্যবহারকারী realtime তথ্য চাইলে
-search result ছাড়া উত্তর দেবে না।
+Realtime তথ্যের ক্ষেত্রে অনুমান করবে না।
 
-বাংলায় উত্তর দাও।
-তথ্য সংক্ষেপে এবং পরিষ্কারভাবে দাও।
+বাংলায় পরিষ্কার ও সংক্ষিপ্ত উত্তর দাও।
+
 প্রয়োজনে source উল্লেখ করো।
 `
 
-}
-
-
 },
 
+...secondMessages
+
+]
+
+},
 
 {
 
@@ -230,36 +258,19 @@ Authorization:
 
 }
 
-
 );
 
 
 
-
-console.log(
-"Final AI:",
-finalResponse.data.choices[0].message
-);
-
-
-
-return finalResponse
-.data
+return final.data
 .choices[0]
 .message
 .content;
 
 
-
 }
 
 
-}
-
-
-
-
-// Normal AI answer
 
 
 if(aiMessage.content){
@@ -270,10 +281,7 @@ return aiMessage.content;
 
 
 
-
-return "দুঃখিত, কোনো উত্তর পাওয়া যায়নি ❌";
-
-
+return "কোনো উত্তর পাওয়া যায়নি ❌";
 
 
 
@@ -292,7 +300,6 @@ return "AI উত্তর দিতে সমস্যা হচ্ছে ❌";
 
 
 }
-
 
 
 }
