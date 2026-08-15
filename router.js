@@ -13,7 +13,29 @@ async function askOpenRouter(messages) {
 
             messages: messages,
 
-            temperature: 0.7
+temperature: 0.7,
+
+tools: [
+{
+type:"function",
+function:{
+name:"web_search",
+description:"Search web for latest information, news, current events and realtime data",
+parameters:{
+type:"object",
+properties:{
+query:{
+type:"string",
+description:"What to search"
+}
+},
+required:["query"]
+}
+}
+}
+],
+
+tool_choice:"auto"
         },
 
         {
