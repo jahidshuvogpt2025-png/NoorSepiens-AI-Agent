@@ -3,39 +3,66 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const webSearch = require("./webSearch");
 
 
+// ================= GEMINI =================
+
 async function askGemini(messages) {
 
-    if (!process.env.GEMINI_API_KEY) {
-        throw new Error("Gemini API key missing");
+    try {
+
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("Gemini API key missing");
+        }
+
+
+        console.log("🤖 Using Gemini");
+
+
+        const genAI = new GoogleGenerativeAI(
+            process.env.GEMINI_API_KEY
+        );
+
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash"
+        });
+
+
+        const prompt = messages
+            .map(m => `${m.role}: ${m.content}`)
+            .join("\n");
+
+
+        const result = await model.generateContent(prompt);
+
+
+        return result.response.text();
+
+
+    } catch(error){
+
+        console.log(
+            "Gemini Error:",
+            error.message
+        );
+
+        throw error;
     }
 
-    const genAI = new GoogleGenerativeAI(
-        process.env.GEMINI_API_KEY
-    );
-
-    const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash"
-    });
-
-
-    const prompt = messages
-        .map(m => `${m.role}: ${m.content}`)
-        .join("\n");
-
-
-    const result = await model.generateContent(prompt);
-
-    return result.response.text();
 }
 
 
 
-async function askOpenRouter(messages) {
+// ================= OPENROUTER =================
 
 
-    if (!process.env.OPENROUTER_API_KEY) {
+async function askOpenRouter(messages){
+
+    if(!process.env.OPENROUTER_API_KEY){
         throw new Error("OpenRouter API key missing");
     }
+
+
+    console.log("🤖 Using OpenRouter");
 
 
     const response = await axios.post(
@@ -44,12 +71,13 @@ async function askOpenRouter(messages) {
 
         {
             model: "openai/gpt-4o-mini",
-            messages,
+            messages: messages,
             temperature: 0.7
         },
 
+
         {
-            headers: {
+            headers:{
                 Authorization:
                 `Bearer ${process.env.OPENROUTER_API_KEY}`,
 
@@ -57,19 +85,23 @@ async function askOpenRouter(messages) {
                 "application/json"
             }
         }
+
     );
 
 
     return response.data
-        .choices[0]
-        .message
-        .content;
+    .choices[0]
+    .message
+    .content;
 
 }
 
 
 
-async function askAI(messages) {
+// ================= MAIN AI =================
+
+
+async function askAI(messages){
 
 
     try {
@@ -80,7 +112,10 @@ async function askAI(messages) {
 
 
 
+        // Web search trigger
+
         const searchWords = [
+
             "আজ",
             "বর্তমান",
             "খবর",
@@ -90,22 +125,27 @@ async function askAI(messages) {
             "দাম",
             "weather",
             "আবহাওয়া"
+
         ];
 
 
 
-        let finalMessages = [...messages];
+        let finalMessages = [
+            ...messages
+        ];
 
 
 
-        const needSearch = searchWords.some(word =>
-            userMessage.toLowerCase()
+        const needSearch =
+        searchWords.some(word =>
+            userMessage
+            .toLowerCase()
             .includes(word.toLowerCase())
         );
 
 
 
-        if (needSearch) {
+        if(needSearch){
 
 
             console.log(
@@ -119,42 +159,41 @@ async function askAI(messages) {
 
 
 
-            if(results.length > 0){
+            if(results && results.length){
+
 
                 finalMessages.unshift({
 
                     role:"system",
 
                     content:
-`নিচের ওয়েব তথ্য বিশ্লেষণ করে উত্তর তৈরি করো।
+`Web search information:
 
-নিয়ম:
-- সরাসরি তথ্যের সারাংশ দাও
-- URL বা অপ্রয়োজনীয় link দেখাবে না
-- বাংলায় স্বাভাবিকভাবে উত্তর দাও
-- তথ্যের শেষে ছোট করে source নাম উল্লেখ করতে পারো
+${JSON.stringify(results)}
 
-Web Data:
-
-${JSON.stringify(results,null,2)}`
+Use this information and answer naturally in Bangla.`
 
                 });
 
+
             }
+
 
         }
 
 
 
-        // Primary AI
-        try {
 
-            console.log("🤖 Using OpenRouter");
+        // First try OpenRouter
 
-            return await askOpenRouter(finalMessages);
+        try{
+
+            return await askOpenRouter(
+                finalMessages
+            );
 
 
-        } catch(openError){
+        }catch(openRouterError){
 
 
             console.log(
@@ -162,14 +201,15 @@ ${JSON.stringify(results,null,2)}`
             );
 
 
-            // Backup AI
-            return await askGemini(finalMessages);
+            return await askGemini(
+                finalMessages
+            );
 
         }
 
 
 
-    } catch(error){
+    }catch(error){
 
 
         console.log(
