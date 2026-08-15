@@ -1,9 +1,10 @@
 const axios = require("axios");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const webSearch = require("./webSearch");
 
 
-// ================= GEMINI =================
+// ===============================
+// Gemini REST API
+// ===============================
 
 async function askGemini(messages) {
 
@@ -14,99 +15,148 @@ async function askGemini(messages) {
         }
 
 
-        console.log("🤖 Using Gemini");
+        console.log("🤖 Using Gemini REST");
 
 
-        const genAI = new GoogleGenerativeAI(
-            process.env.GEMINI_API_KEY
-        );
-
-
-        const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-lite"
-});
         const prompt = messages
             .map(m => `${m.role}: ${m.content}`)
             .join("\n");
 
 
-        const result = await model.generateContent(prompt);
+        const response = await axios.post(
+
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
+            {
+                contents: [
+                    {
+                        parts: [
+                            {
+                                text: prompt
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            {
+                headers:{
+                    "Content-Type":"application/json"
+                }
+            }
+
+        );
 
 
-        return result.response.text();
+        return response.data
+            .candidates[0]
+            .content
+            .parts[0]
+            .text;
 
 
     } catch(error){
 
         console.log(
             "Gemini Error:",
-            error.message
+            error.response?.data || error.message
         );
 
         throw error;
+
     }
 
 }
 
 
 
-// ================= OPENROUTER =================
-
+// ===============================
+// OpenRouter API
+// ===============================
 
 async function askOpenRouter(messages){
 
-    if(!process.env.OPENROUTER_API_KEY){
-        throw new Error("OpenRouter API key missing");
-    }
+    try{
 
 
-    console.log("🤖 Using OpenRouter");
+        if(!process.env.OPENROUTER_API_KEY){
 
+            throw new Error(
+                "OpenRouter API key missing"
+            );
 
-    const response = await axios.post(
-
-        "https://openrouter.ai/api/v1/chat/completions",
-
-        {
-            model: "openai/gpt-4o-mini",
-            messages: messages,
-            temperature: 0.7
-        },
-
-
-        {
-            headers:{
-                Authorization:
-                `Bearer ${process.env.OPENROUTER_API_KEY}`,
-
-                "Content-Type":
-                "application/json"
-            }
         }
 
-    );
+
+        console.log("🤖 Using OpenRouter");
 
 
-    return response.data
-    .choices[0]
-    .message
-    .content;
+        const response = await axios.post(
+
+            "https://openrouter.ai/api/v1/chat/completions",
+
+            {
+
+                model:
+                "openai/gpt-4o-mini",
+
+                messages,
+
+                temperature:0.7
+
+            },
+
+
+            {
+
+                headers:{
+
+                    Authorization:
+                    `Bearer ${process.env.OPENROUTER_API_KEY}`,
+
+                    "Content-Type":
+                    "application/json"
+
+                }
+
+            }
+
+        );
+
+
+        return response.data
+        .choices[0]
+        .message
+        .content;
+
+
+    }catch(error){
+
+        console.log(
+            "OpenRouter Error:",
+            error.response?.data || error.message
+        );
+
+
+        throw error;
+
+    }
 
 }
 
 
 
-// ================= MAIN AI =================
-
+// ===============================
+// Main AI Function
+// ===============================
 
 async function askAI(messages){
 
-
-    try {
+    try{
 
 
         const userMessage =
-        messages[messages.length - 1].content;
+        messages[messages.length-1].content;
 
 
 
@@ -145,7 +195,6 @@ async function askAI(messages){
 
         if(needSearch){
 
-
             console.log(
                 "🔎 Web search:",
                 userMessage
@@ -157,25 +206,23 @@ async function askAI(messages){
 
 
 
-            if(results && results.length){
-
+            if(results.length > 0){
 
                 finalMessages.unshift({
 
                     role:"system",
 
                     content:
-`Web search information:
 
-${JSON.stringify(results)}
+`Web search তথ্য:
 
-Use this information and answer naturally in Bangla.`
+${JSON.stringify(results,null,2)}
+
+এই তথ্য ব্যবহার করে বাংলায় স্বাভাবিক উত্তর দাও।`
 
                 });
 
-
             }
-
 
         }
 
@@ -190,33 +237,42 @@ Use this information and answer naturally in Bangla.`
                 finalMessages
             );
 
+        }
 
-        }catch(openRouterError){
-
+        catch(e){
 
             console.log(
                 "OpenRouter failed, switching Gemini..."
-            );
-
-
-            return await askGemini(
-                finalMessages
             );
 
         }
 
 
 
-    }catch(error){
+
+        // Backup Gemini
+
+        return await askGemini(
+            finalMessages
+        );
+
+
+
+
+    }
+
+    catch(error){
 
 
         console.log(
             "AI ERROR:",
+            error.response?.data ||
             error.message
         );
 
 
         return "AI উত্তর দিতে সমস্যা হচ্ছে ❌";
+
 
     }
 
