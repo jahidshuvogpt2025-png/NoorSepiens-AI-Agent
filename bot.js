@@ -446,26 +446,34 @@ Be helpful and friendly.
 
 
                     const reply =
-                    await router(messages);
+await router(messages);
 
 
 
-
-                    await memory.saveMemory(
-                        chatId,
-                        "assistant",
-                        reply
-                    );
+let finalReply = reply;
 
 
+if (!finalReply || !finalReply.trim()) {
 
-                    bot.sendMessage(
-                        chatId,
-                        reply
-                    );
+    finalReply =
+    "দুঃখিত, কোনো উত্তর পাওয়া যায়নি ❌";
+
+}
 
 
 
+await memory.saveMemory(
+    chatId,
+    "assistant",
+    finalReply
+);
+
+
+
+await bot.sendMessage(
+    chatId,
+    finalReply
+);
                     }
 
 
